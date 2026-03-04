@@ -1,0 +1,4 @@
+com.decoy.shopping.agent.test.app-androidTest-0 /Users/rapahaharshavardhan/.gemini/antigravity/playground/gravitic-orbit/sentinel-agent/DecoyAgentApp/app/build/generated/res/resValues/androidTest/debug
+com.decoy.shopping.agent.test.app-mergeDebugAndroidTestResources-1 /Users/rapahaharshavardhan/.gemini/antigravity/playground/gravitic-orbit/sentinel-agent/DecoyAgentApp/app/build/intermediates/incremental/debugAndroidTest/mergeDebugAndroidTestResources/merged.dir
+com.decoy.shopping.agent.test.app-mergeDebugAndroidTestResources-2 /Users/rapahaharshavardhan/.gemini/antigravity/playground/gravitic-orbit/sentinel-agent/DecoyAgentApp/app/build/intermediates/incremental/debugAndroidTest/mergeDebugAndroidTestResources/stripped.dir
+com.decoy.shopping.agent.test.app-merged_res-3 /Users/rapahaharshavardhan/.gemini/antigravity/playground/gravitic-orbit/sentinel-agent/DecoyAgentApp/app/build/intermediates/merged_res/debugAndroidTest

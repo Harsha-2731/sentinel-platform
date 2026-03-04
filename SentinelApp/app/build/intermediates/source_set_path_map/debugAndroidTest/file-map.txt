@@ -1,0 +1,6 @@
+com.sentinel.agent.test.app-androidTest-0 /Users/rapahaharshavardhan/.gemini/antigravity/playground/gravitic-orbit/sentinel-agent/SentinelApp/app/build/generated/res/resValues/androidTest/debug
+com.sentinel.agent.test.app-mergeDebugAndroidTestResources-1 /Users/rapahaharshavardhan/.gemini/antigravity/playground/gravitic-orbit/sentinel-agent/SentinelApp/app/build/intermediates/incremental/debugAndroidTest/mergeDebugAndroidTestResources/merged.dir
+com.sentinel.agent.test.app-mergeDebugAndroidTestResources-2 /Users/rapahaharshavardhan/.gemini/antigravity/playground/gravitic-orbit/sentinel-agent/SentinelApp/app/build/intermediates/incremental/debugAndroidTest/mergeDebugAndroidTestResources/stripped.dir
+com.sentinel.agent.test.app-merged_res-3 /Users/rapahaharshavardhan/.gemini/antigravity/playground/gravitic-orbit/sentinel-agent/SentinelApp/app/build/intermediates/merged_res/debugAndroidTest
+com.sentinel.agent.test.app-jetified-core-1.5.0-4 /Users/rapahaharshavardhan/.gradle/caches/transforms-3/021393f7e17594b0a02aea8214bcfbae/transformed/jetified-core-1.5.0/res
+com.sentinel.agent.test.app-jetified-annotation-experimental-1.3.0-5 /Users/rapahaharshavardhan/.gradle/caches/transforms-3/cbb13867435f76f25ed4478bd250e4ec/transformed/jetified-annotation-experimental-1.3.0/res

@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#050510"
+    android:orientation="vertical"
+    android:padding="24dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="GUARDIAN_CONFIG"
+        android:textColor="#00FFCC"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:letterSpacing="0.05"
+        android:layout_marginBottom="32dp"/>
+
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="AGENT_SPENDING_ENFORCEMENT"
+        android:textColor="#9CA3AF"
+        android:textSize="11sp"
+        android:textStyle="bold"
+        android:letterSpacing="0.05" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Any AI agent attempting a purchase above this limit will be BLOCKED. Leave empty to allow all amounts."
+        android:textColor="#6B7280"
+        android:textSize="12sp"
+        android:layout_marginTop="8dp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="16dp"
+        android:gravity="center_vertical">
+        
+        <TextView
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="Max Agent Spend Limit (₹)"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp" />
+
+        <EditText
+            android:id="@+id/maxSpendInput"
+            android:layout_width="120dp"
+            android:layout_height="60dp"
+            android:background="@drawable/bg_input_modern"
+            android:backgroundTint="#0D1117"
+            android:padding="12dp"
+            android:text=""
+            android:hint="No limit set"
+            android:textColorHint="#4B5563"
+            android:textColor="#00FFCC"
+            android:inputType="number"
+            android:textAlignment="center"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#1F2937"
+        android:layout_marginVertical="32dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="INTERFACE_TWEAKS"
+        android:textColor="#9CA3AF"
+        android:textSize="11sp"
+        android:textStyle="bold"
+        android:letterSpacing="0.1" />
+
+    <CheckBox
+        android:id="@+id/darkModeCheck"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Force High-Security UI"
+        android:textColor="#FFFFFF"
+        android:buttonTint="#00FFCC"
+        android:checked="true"
+        android:layout_marginTop="16dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="ULTIMATE_HARDENING_V38"
+        android:textColor="#9CA3AF"
+        android:textSize="11sp"
+        android:textStyle="bold"
+        android:letterSpacing="0.1"
+        android:layout_marginTop="32dp"/>
+
+    <Button
+        android:id="@+id/activateAccessibilityBtn"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:layout_marginTop="16dp"
+        android:text="ENABLE_DEEP_VISION"
+        android:backgroundTint="#1F2937"
+        android:textColor="#00FFCC"
+        android:textSize="12sp"
+        android:letterSpacing="0.1" />
+
+    <Button
+        android:id="@+id/activateAdminBtn"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:layout_marginTop="12dp"
+        android:text="AUTHORIZE_DEVICE_ADMIN"
+        android:backgroundTint="#1F2937"
+        android:textColor="#00FFCC"
+        android:textSize="12sp"
+        android:letterSpacing="0.1" />
+
+    <Button
+        android:id="@+id/saveSettingsBtn"
+        android:layout_width="match_parent"
+        android:layout_height="64dp"
+        android:layout_marginTop="56dp"
+        android:text="APPLY_POLICIES"
+        android:backgroundTint="#00FFCC"
+        android:background="@drawable/bg_button_primary"
+        android:textColor="#050510"
+        android:textStyle="bold"
+        android:letterSpacing="0.1" />
+
+</LinearLayout>

@@ -1,0 +1,20 @@
+{
+    "logs": [
+        {
+            "outputFile": "com.sentinel.agent.app-mergeDebugResources-2:/values-hdpi-v4/values-hdpi-v4.xml",
+            "map": [
+                {
+                    "source": "/Users/rapahaharshavardhan/.gradle/caches/transforms-3/69d1fb38fa0f613e5be1554973c4b4a5/transformed/appcompat-1.6.1/res/values-hdpi-v4/values-hdpi-v4.xml",
+                    "from": {
+                        "startLines": "2",
+                        "startColumns": "4",
+                        "startOffsets": "55",
+                        "endLines": "6",
+                        "endColumns": "13",
+                        "endOffsets": "327"
+                    }
+                }
+            ]
+        }
+    ]
+}

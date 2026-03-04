@@ -1,0 +1,17 @@
+[
+  {
+    "packageName": "com.evil.spyware",
+    "threatType": "spyware",
+    "severity": "CRITICAL"
+  },
+  {
+    "packageName": "com.malicious.agent",
+    "threatType": "rogue_ai",
+    "severity": "CRITICAL"
+  },
+  {
+    "packageName": "com.sentinel.decoy.agent",
+    "threatType": "test_threat",
+    "severity": "HIGH"
+  }
+]

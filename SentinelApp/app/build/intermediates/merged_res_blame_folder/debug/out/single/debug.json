@@ -1,0 +1,70 @@
+[
+    {
+        "merged": "com.sentinel.agent.app-merged_res-4:/xml_accessibility_service_config.xml.flat",
+        "source": "com.sentinel.agent.app-main-6:/xml/accessibility_service_config.xml"
+    },
+    {
+        "merged": "com.sentinel.agent.app-merged_res-4:/layout_activity_emergency.xml.flat",
+        "source": "com.sentinel.agent.app-main-6:/layout/activity_emergency.xml"
+    },
+    {
+        "merged": "com.sentinel.agent.app-merged_res-4:/drawable_bg_input_modern.xml.flat",
+        "source": "com.sentinel.agent.app-main-6:/drawable/bg_input_modern.xml"
+    },
+    {
+        "merged": "com.sentinel.agent.app-merged_res-4:/drawable_bg_card_modern.xml.flat",
+        "source": "com.sentinel.agent.app-main-6:/drawable/bg_card_modern.xml"
+    },
+    {
+        "merged": "com.sentinel.agent.app-merged_res-4:/layout_activity_task_history.xml.flat",
+        "source": "com.sentinel.agent.app-main-6:/layout/activity_task_history.xml"
+    },
+    {
+        "merged": "com.sentinel.agent.app-merged_res-4:/layout_activity_register.xml.flat",
+        "source": "com.sentinel.agent.app-main-6:/layout/activity_register.xml"
+    },
+    {
+        "merged": "com.sentinel.agent.app-merged_res-4:/mipmap-anydpi-v26_ic_launcher_round.xml.flat",
+        "source": "com.sentinel.agent.app-main-6:/mipmap-anydpi-v26/ic_launcher_round.xml"
+    },
+    {
+        "merged": "com.sentinel.agent.app-merged_res-4:/layout_activity_login.xml.flat",
+        "source": "com.sentinel.agent.app-main-6:/layout/activity_login.xml"
+    },
+    {
+        "merged": "com.sentinel.agent.app-merged_res-4:/drawable_bg_screen.xml.flat",
+        "source": "com.sentinel.agent.app-main-6:/drawable/bg_screen.xml"
+    },
+    {
+        "merged": "com.sentinel.agent.app-merged_res-4:/layout_activity_dashboard.xml.flat",
+        "source": "com.sentinel.agent.app-main-6:/layout/activity_dashboard.xml"
+    },
+    {
+        "merged": "com.sentinel.agent.app-merged_res-4:/layout_item_task.xml.flat",
+        "source": "com.sentinel.agent.app-main-6:/layout/item_task.xml"
+    },
+    {
+        "merged": "com.sentinel.agent.app-merged_res-4:/mipmap-anydpi-v26_ic_launcher.xml.flat",
+        "source": "com.sentinel.agent.app-main-6:/mipmap-anydpi-v26/ic_launcher.xml"
+    },
+    {
+        "merged": "com.sentinel.agent.app-merged_res-4:/layout_activity_settings.xml.flat",
+        "source": "com.sentinel.agent.app-main-6:/layout/activity_settings.xml"
+    },
+    {
+        "merged": "com.sentinel.agent.app-merged_res-4:/layout_item_risk_event.xml.flat",
+        "source": "com.sentinel.agent.app-main-6:/layout/item_risk_event.xml"
+    },
+    {
+        "merged": "com.sentinel.agent.app-merged_res-4:/layout_activity_attack_simulation.xml.flat",
+        "source": "com.sentinel.agent.app-main-6:/layout/activity_attack_simulation.xml"
+    },
+    {
+        "merged": "com.sentinel.agent.app-merged_res-4:/xml_device_admin_config.xml.flat",
+        "source": "com.sentinel.agent.app-main-6:/xml/device_admin_config.xml"
+    },
+    {
+        "merged": "com.sentinel.agent.app-merged_res-4:/drawable_bg_button_primary.xml.flat",
+        "source": "com.sentinel.agent.app-main-6:/drawable/bg_button_primary.xml"
+    }
+]

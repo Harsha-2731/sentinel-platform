@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+
+    <queries>
+        <package android:name="com.sentinel.agent" />
+    </queries>
+
+    <application
+        android:allowBackup="true"
+        android:icon="@drawable/ic_launcher_decoy"
+        android:label="Velocity Retail &amp; AI"
+        android:roundIcon="@drawable/ic_launcher_decoy"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.AppCompat.NoActionBar"
+        android:usesCleartextTraffic="true">
+        
+        <!-- Login: The new launcher for the insecure flow -->
+        <activity
+            android:name=".ui.LoginActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <activity android:name=".ui.RegisterActivity" />
+        <activity android:name=".MainActivity" />
+        <activity android:name=".ui.AgentActivity" />
+        
+        <!-- Shell Activities for full e-commerce look -->
+        <activity android:name=".ui.ProductActivity" />
+        <activity android:name=".ui.CartActivity" />
+        <activity android:name=".ui.WishlistActivity" />
+        <activity android:name=".ui.OrdersActivity" />
+        <activity android:name=".ui.CategoriesActivity" />
+        <activity android:name=".ui.PaymentGatewayActivity" />
+        <service
+            android:name=".service.AgentService"
+            android:enabled="true"
+            android:exported="false" />
+
+    </application>
+
+</manifest>

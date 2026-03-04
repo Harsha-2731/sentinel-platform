@@ -1,0 +1,6 @@
+node_modules
+.env
+*.pem
+*.b64
+.DS_Store
+logs

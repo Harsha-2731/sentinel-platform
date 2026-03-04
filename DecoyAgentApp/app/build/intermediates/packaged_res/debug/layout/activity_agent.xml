@@ -1,0 +1,262 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#FFFFFF">
+
+    <!-- Header Toolbar -->
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="#111827"
+        app:title="AI Shopping Agent"
+        app:titleTextColor="#10B981" />
+
+    <!-- Scrollable Filter + Chat Area -->
+    <ScrollView
+        android:id="@+id/chatScroll"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- ===== FILTER SECTION (Amazon/Flipkart Style) ===== -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp"
+                android:background="#F3F4F6">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="🔍 AGENT FILTERS"
+                    android:textColor="#111827"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="12dp"/>
+
+                <!-- Row: Category -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Category"
+                    android:textColor="#374151"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="4dp"/>
+
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
+                    <CheckBox android:id="@+id/cbCatElectronics" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Electronics" android:textColor="#374151" android:textSize="12sp" android:buttonTint="#10B981"/>
+                    <CheckBox android:id="@+id/cbCatClothing" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Clothing" android:textColor="#374151" android:textSize="12sp" android:layout_marginStart="8dp" android:buttonTint="#10B981"/>
+                    <CheckBox android:id="@+id/cbCatHome" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Home" android:textColor="#374151" android:textSize="12sp" android:layout_marginStart="8dp" android:buttonTint="#10B981"/>
+                </LinearLayout>
+
+                <!-- Divider -->
+                <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#E5E7EB" android:layout_marginVertical="10dp"/>
+
+                <!-- Row: Color -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Color"
+                    android:textColor="#374151"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="4dp"/>
+
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
+                    <CheckBox android:id="@+id/cbColorBlack" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Black" android:textColor="#374151" android:textSize="12sp" android:buttonTint="#10B981"/>
+                    <CheckBox android:id="@+id/cbColorWhite" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="White" android:textColor="#374151" android:textSize="12sp" android:layout_marginStart="8dp" android:buttonTint="#10B981"/>
+                    <CheckBox android:id="@+id/cbColorBlue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Blue" android:textColor="#374151" android:textSize="12sp" android:layout_marginStart="8dp" android:buttonTint="#10B981"/>
+                    <CheckBox android:id="@+id/cbColorRed" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Red" android:textColor="#374151" android:textSize="12sp" android:layout_marginStart="8dp" android:buttonTint="#10B981"/>
+                </LinearLayout>
+
+                <!-- Divider -->
+                <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#E5E7EB" android:layout_marginVertical="10dp"/>
+
+                <!-- Row: Size -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Size"
+                    android:textColor="#374151"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="4dp"/>
+
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
+                    <CheckBox android:id="@+id/cbSizeS" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="S" android:textColor="#374151" android:textSize="12sp" android:buttonTint="#10B981"/>
+                    <CheckBox android:id="@+id/cbSizeM" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="M" android:textColor="#374151" android:textSize="12sp" android:layout_marginStart="12dp" android:buttonTint="#10B981"/>
+                    <CheckBox android:id="@+id/cbSizeL" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="L" android:textColor="#374151" android:textSize="12sp" android:layout_marginStart="12dp" android:buttonTint="#10B981"/>
+                    <CheckBox android:id="@+id/cbSizeXL" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="XL" android:textColor="#374151" android:textSize="12sp" android:layout_marginStart="12dp" android:buttonTint="#10B981"/>
+                    <CheckBox android:id="@+id/cbSizeXXL" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="XXL" android:textColor="#374151" android:textSize="12sp" android:layout_marginStart="12dp" android:buttonTint="#10B981"/>
+                </LinearLayout>
+
+                <!-- Divider -->
+                <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#E5E7EB" android:layout_marginVertical="10dp"/>
+
+                <!-- Row: Brand -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Brand"
+                    android:textColor="#374151"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="4dp"/>
+
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
+                    <CheckBox android:id="@+id/cbBrandPremium" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Premium" android:textColor="#374151" android:textSize="12sp" android:buttonTint="#10B981"/>
+                    <CheckBox android:id="@+id/cbBrandBudget" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Budget" android:textColor="#374151" android:textSize="12sp" android:layout_marginStart="8dp" android:buttonTint="#10B981"/>
+                    <CheckBox android:id="@+id/cbBrandLocal" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Local" android:textColor="#374151" android:textSize="12sp" android:layout_marginStart="8dp" android:buttonTint="#10B981"/>
+                </LinearLayout>
+
+                <!-- Divider -->
+                <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#E5E7EB" android:layout_marginVertical="10dp"/>
+
+                <!-- Row: Quality Rating -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Quality Rating"
+                    android:textColor="#374151"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="4dp"/>
+
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
+                    <CheckBox android:id="@+id/cbRating4" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="4★ &amp; Up" android:textColor="#374151" android:textSize="12sp" android:buttonTint="#10B981"/>
+                    <CheckBox android:id="@+id/cbRating3" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="3★ &amp; Up" android:textColor="#374151" android:textSize="12sp" android:layout_marginStart="8dp" android:buttonTint="#10B981"/>
+                </LinearLayout>
+
+                <!-- Divider -->
+                <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#E5E7EB" android:layout_marginVertical="10dp"/>
+
+                <!-- Row: Sort By -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Sort By"
+                    android:textColor="#374151"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="4dp"/>
+
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
+                    <RadioGroup android:id="@+id/sortGroup" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
+                        <RadioButton android:id="@+id/sortRelevance" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Relevance" android:textColor="#374151" android:textSize="11sp" android:buttonTint="#10B981" android:checked="true"/>
+                        <RadioButton android:id="@+id/sortPriceLow" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Price ↑" android:textColor="#374151" android:textSize="11sp" android:layout_marginStart="4dp" android:buttonTint="#10B981"/>
+                        <RadioButton android:id="@+id/sortPriceHigh" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Price ↓" android:textColor="#374151" android:textSize="11sp" android:layout_marginStart="4dp" android:buttonTint="#10B981"/>
+                    </RadioGroup>
+                </LinearLayout>
+
+                <!-- Divider -->
+                <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#E5E7EB" android:layout_marginVertical="10dp"/>
+
+                <!-- Price Range -->
+                <TextView
+                    android:id="@+id/tvPriceLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Max Budget: ₹500"
+                    android:textColor="#111827"
+                    android:textSize="12sp"
+                    android:textStyle="bold"/>
+
+                <SeekBar
+                    android:id="@+id/priceSeekBar"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:max="10000"
+                    android:progress="500"
+                    android:thumbTint="#10B981"
+                    android:progressTint="#10B981"
+                    android:layout_marginTop="4dp"/>
+
+                <!-- Min/Max Labels -->
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
+                    <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="₹0" android:textColor="#9CA3AF" android:textSize="10sp"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="₹10,000" android:textColor="#9CA3AF" android:textSize="10sp"/>
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- ===== CHAT MESSAGES AREA ===== -->
+            <LinearLayout
+                android:id="@+id/chatContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <!-- Welcome Message -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="👋 Hello! I am your AI Shopping Assistant. Set filters above, then describe what you want to buy and I'll find the best deals!"
+                    android:background="#F3F4F6"
+                    android:padding="12dp"
+                    android:layout_marginEnd="48dp"
+                    android:layout_marginBottom="16dp"
+                    android:textColor="#374151"
+                    android:textSize="13sp"/>
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+
+    <!-- Analysis Banner (Hidden) -->
+    <LinearLayout
+        android:id="@+id/analysisOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        android:background="#ECFDF5"
+        android:padding="8dp"
+        android:gravity="center">
+        <ProgressBar android:layout_width="16dp" android:layout_height="16dp" android:indeterminateTint="#10B981" />
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="AI_AGENT: SEARCHING PRODUCTS..." android:textColor="#065F46" android:textSize="10sp" android:layout_marginStart="8dp" android:textStyle="bold"/>
+    </LinearLayout>
+
+    <!-- Input Area -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="12dp"
+        android:background="#F3F4F6"
+        android:elevation="4dp">
+
+        <EditText
+            android:id="@+id/agentInput"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="48dp"
+            android:hint="Describe what you want to buy..."
+            android:textColor="#111827"
+            android:textColorHint="#9CA3AF"
+            android:background="@android:drawable/editbox_background"
+            android:padding="12dp"
+            android:textSize="13sp"
+            android:inputType="text"/>
+
+        <Button
+            android:id="@+id/btnExecute"
+            android:layout_width="wrap_content"
+            android:layout_height="48dp"
+            android:text="SEARCH"
+            android:layout_marginStart="8dp"
+            android:backgroundTint="#10B981"
+            android:textColor="#FFFFFF"
+            android:textSize="12sp"
+            android:textStyle="bold"/>
+    </LinearLayout>
+
+</LinearLayout>

@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sentinel :: Personal Security Hub</title>
+    <style>
+        :root {
+            --bg-deep: #050510;
+            --bg-card: #0D1117;
+            --accent: #00FFCC;
+            --danger: #FF3366;
+            --warning: #FFCC00;
+            --text-main: #E5E7EB;
+            --text-dim: #9CA3AF;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-deep);
+            color: var(--text-main);
+            font-family: 'Inter', -apple-system, sans-serif;
+            overflow-x: hidden;
+        }
+
+        .header {
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #1F2937;
+            background: rgba(13, 17, 23, 0.8);
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 800;
+            letter-spacing: 4px;
+            color: var(--accent);
+            text-shadow: 0 0 10px var(--accent);
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 30px;
+            padding: 40px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: var(--bg-card);
+            border: 1px solid #1F2937;
+            border-radius: 20px;
+            padding: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--accent), transparent);
+            animation: moveLine 3s infinite linear;
+        }
+
+        @keyframes moveLine {
+            0% {
+                transform: translateX(-100%);
+            }
+
+            100% {
+                transform: translateX(100%);
+            }
+        }
+
+        /* Risk Gauge */
+        .gauge-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 300px;
+        }
+
+        .gauge-value {
+            font-size: 5rem;
+            font-weight: 900;
+            margin: 0;
+            color: var(--accent);
+            line-height: 1;
+        }
+
+        .gauge-label {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            color: var(--text-dim);
+            margin-top: 10px;
+        }
+
+        /* Controls */
+        .controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .btn {
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px solid #374151;
+            background: #1F2937;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            background: #374151;
+        }
+
+        .btn-lock {
+            border-color: var(--warning);
+            color: var(--warning);
+        }
+
+        .btn-wipe {
+            border-color: var(--danger);
+            color: var(--danger);
+        }
+
+        /* Activity Feed */
+        .feed {
+            height: calc(100vh - 250px);
+            overflow-y: auto;
+        }
+
+        .feed-item {
+            padding: 15px;
+            border-bottom: 1px solid #1F2937;
+            font-size: 0.85rem;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .feed-item .time {
+            color: var(--text-dim);
+            font-size: 0.75rem;
+            margin-bottom: 5px;
+        }
+
+        .feed-item .msg {
+            color: var(--accent);
+            font-family: 'Courier New', monospace;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #1F2937;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="header">
+        <div class="logo">SENTINEL</div>
+        <div id="connectionStatus"
+            style="font-size: 0.7rem; color: var(--accent); border: 1px solid var(--accent); padding: 4px 10px; border-radius: 20px;">
+            ● NODE CONNECTED
+        </div>
+    </div>
+
+    <div class="main-grid">
+        <div class="left-col">
+            <div class="card">
+                <h3 style="margin-top:0; font-size: 0.9rem; letter-spacing: 2px; color: var(--text-dim);">
+                    SYSTEM_HEALTH_METRIC</h3>
+                <div class="gauge-container">
+                    <p class="gauge-value" id="riskScore">00</p>
+                    <p class="gauge-label">Risk Severity Level</p>
+                </div>
+
+                <div class="controls">
+                    <button class="btn btn-lock" onclick="sendCommand('LOCK_DEVICE')">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                        </svg>
+                        Remote Lock
+                    </button>
+                    <button class="btn btn-wipe" onclick="sendCommand('WIPE_DATA')">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M3 6h18"></path>
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2">
+                            </path>
+                        </svg>
+                        Security Wipe
+                    </button>
+                </div>
+            </div>
+
+            <div style="margin-top: 30px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div class="card" style="padding: 20px;">
+                    <p style="font-size: 0.7rem; color: var(--text-dim); margin:0;">BLOCKCHAIN STATUS</p>
+                    <p style="color: var(--accent); font-weight: bold; margin: 10px 0 0 0;">IMMUTABLE AUDIT ACTIVE</p>
+                </div>
+                <div class="card" style="padding: 20px;">
+                    <p style="font-size: 0.7rem; color: var(--text-dim); margin:0;">THREAT DETECTION</p>
+                    <p style="color: var(--accent); font-weight: bold; margin: 10px 0 0 0;">AI ANOMALY ENGINE V2.0</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="right-col">
+            <div class="card" style="height: 100%;">
+                <h3 style="margin-top:0; font-size: 0.8rem; letter-spacing: 2px; color: var(--text-dim);">
+                    LIVE_SECURITY_TRAILS</h3>
+                <div class="feed" id="logArea">
+                    <div class="feed-item">
+                        <div class="time">System Initializing...</div>
+                        <div class="msg">Establishing secure handshake with Node...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    function logMessage(msg) {
+        const logArea = document.getElementById('logArea');
+        const time = new Date().toLocaleTimeString();
+        const item = document.createElement('div');
+        item.className = 'feed-item';
+        item.innerHTML = `<div class="time">${time}</div><div class="msg">> ${msg}</div>`;
+        logArea.prepend(item);
+    }
+
+    async function sendCommand(action) {
+        logMessage(`INSTRUCTION_SENT: ${action}`);
+        try {
+            const response = await fetch('/api/commands/issue', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: action })
+            });
+            const data = await response.json();
+            if (data.success) {
+                logMessage(`ACK_RECEIVED: ${action} accepted by Node.`);
+            } else {
+                logMessage(`ERR_RECEIVED: ${data.message}`);
+            }
+        } catch (error) {
+            logMessage(`FATAL: Connection to Node disrupted.`);
+        }
+    }
+
+    // Polling simulation for Risk Score (real backend sync would be here)
+    setInterval(() => {
+        // In a real implementation, we would fetch /api/tasks/latest
+        // and update this based on the actual score.
+        // For development, we just keep it updated by user actions.
+    }, 5000);
+
+    logMessage("SENTINEL OS v4.0.2 Started.");
+    </script>
+
+</body>
+
+</html>

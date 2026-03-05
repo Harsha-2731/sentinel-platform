@@ -22,12 +22,19 @@ class SecurityHelper(private val context: Context) {
         private const val PREFS_NAME = "sentinel_secure_prefs"
         private const val KEY_JWT_TOKEN = "jwt_token"
         private const val KEY_HMAC_SECRET = "hmac_signing_secret"
+        private const val KEY_USER_EMAIL = "user_email"
         private const val KEYSTORE_ALIAS = "sentinel_integrity_key"
         
         const val EXTRA_AGENT_ID = "com.sentinel.agent.EXTRA_AGENT_ID"
         const val EXTRA_SIGNATURE = "com.sentinel.agent.EXTRA_SIGNATURE"
         const val EXTRA_TIMESTAMP = "com.sentinel.agent.EXTRA_TIMESTAMP"
+
+        init {
+            System.loadLibrary("sentinel_native")
+        }
     }
+
+    private external fun isNativeTamperDetected(): Boolean
 
     // V33: Implementation of hardware-backed EncryptedSharedPreferences
     private val sharedPreferences: SharedPreferences by lazy {
@@ -54,18 +61,31 @@ class SecurityHelper(private val context: Context) {
         val keyStore = KeyStore.getInstance("AndroidKeyStore")
         keyStore.load(null)
         if (!keyStore.containsAlias(KEYSTORE_ALIAS)) {
-            val keyGenerator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, "AndroidKeyStore")
-            keyGenerator.init(
-                KeyGenParameterSpec.Builder(KEYSTORE_ALIAS, 
+            try {
+                val keyGenerator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, "AndroidKeyStore")
+                val builder = KeyGenParameterSpec.Builder(KEYSTORE_ALIAS, 
                     KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT)
                     .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
                     .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
-                    .setUserAuthenticationRequired(false) // For background monitoring efficiency
+                    .setUserAuthenticationRequired(false)
                     .setRandomizedEncryptionRequired(true)
-                    .build()
-            )
-            keyGenerator.generateKey()
-            Log.d("SecurityHelper", "Hardware-backed security anchor generated.")
+
+                // V51: Attempt to use StrongBox (Dedicated Secure Element)
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
+                    try {
+                        builder.setIsStrongBoxBacked(true)
+                        Log.i("SecurityHelper", "ELITE_HARDENING: Requesting StrongBox enforcement.")
+                    } catch (e: Exception) {
+                        Log.w("SecurityHelper", "StrongBox not available on this hardware. Falling back to TEE.")
+                    }
+                }
+
+                keyGenerator.init(builder.build())
+                keyGenerator.generateKey()
+                Log.d("SecurityHelper", "Hardware-backed security anchor generated.")
+            } catch (e: Exception) {
+                Log.e("SecurityHelper", "CRITICAL: Shared security anchor generation failed: ${e.message}")
+            }
         }
     }
 
@@ -86,12 +106,34 @@ class SecurityHelper(private val context: Context) {
         return sharedPreferences.getString(KEY_HMAC_SECRET, null)
     }
 
+    fun saveUserEmail(email: String) {
+        sharedPreferences.edit().putString(KEY_USER_EMAIL, email).apply()
+        Log.d("SecurityHelper", "User email saved: $email")
+    }
+
+    fun getUserEmail(): String? {
+        return sharedPreferences.getString(KEY_USER_EMAIL, null)
+    }
+
     fun clearAuthorities() {
         sharedPreferences.edit()
             .remove(KEY_JWT_TOKEN)
             .remove(KEY_HMAC_SECRET)
             .apply()
         Log.d("SecurityHelper", "Credentials revoked locally. Agent session terminated.")
+    }
+
+    /**
+     * V60: Total Forensic Wipe
+     * Clears all session data and security flags to sanitize the device.
+     */
+    fun wipeAllData() {
+        sharedPreferences.edit().clear().apply()
+        
+        // Reset lockdown status specifically
+        setLockdownActive(false)
+        
+        Log.w("SecurityHelper", "FORENSIC WIPE EXECUTED: All local Sentinel session data has been purged.")
     }
 
     /**
@@ -163,11 +205,14 @@ class SecurityHelper(private val context: Context) {
     }
 
     fun isFridaDetected(): Boolean {
-        return try {
+        val fileDetected = try {
             val file = java.io.File("/proc/self/maps")
             val content = file.readText()
             content.contains("frida") || content.contains("gum-js") || content.contains("gadget")
         } catch (e: Exception) { false }
+
+        // V52: Combine user-space scanning with Native Syscall (SVC) stealth detection
+        return fileDetected || isNativeTamperDetected()
     }
 
     fun isEmulator(): Boolean {
@@ -217,5 +262,12 @@ class SecurityHelper(private val context: Context) {
 
     fun isLockdownActive(): Boolean {
         return sharedPreferences.getBoolean("LOCKDOWN_ACTIVE", false)
+    }
+
+    fun getDeviceId(): String {
+        return android.provider.Settings.Secure.getString(
+            context.contentResolver, 
+            android.provider.Settings.Secure.ANDROID_ID
+        ) ?: "unknown_device"
     }
 }

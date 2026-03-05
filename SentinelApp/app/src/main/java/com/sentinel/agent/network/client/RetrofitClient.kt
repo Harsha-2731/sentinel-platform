@@ -10,8 +10,8 @@ import okhttp3.CertificatePinner
 import java.util.concurrent.TimeUnit
 
 object RetrofitClient {
-    // Physical Device Testing: 192.168.1.5 is the Mac's IP on the local network
-    private const val BASE_URL = "http://192.168.1.5:3000/" 
+    // Physical Device Testing: 192.168.137.32 is the Mac's IP on the local network
+    private const val BASE_URL = "http://192.168.137.32:8080/" 
     
     // Advanced Network Hardening: HMAC Signature Generation
     class AuthInterceptor(

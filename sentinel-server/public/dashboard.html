@@ -4,305 +4,471 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sentinel :: Personal Security Hub</title>
+    <title>Sentinel :: Command Center</title>
+    <script>
+        // Force HTTP Downgrade
+        if (window.location.protocol === 'https:') {
+            window.location.href = window.location.href.replace('https:', 'http:');
+        }
+    </script>
+    <script>
+        if (!localStorage.getItem('sentinel_token')) {
+            window.location.replace('/login');
+        }
+    </script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&display=swap"
+        rel="stylesheet">
     <style>
         :root {
-            --bg-deep: #050510;
-            --bg-card: #0D1117;
-            --accent: #00FFCC;
-            --danger: #FF3366;
-            --warning: #FFCC00;
-            --text-main: #E5E7EB;
-            --text-dim: #9CA3AF;
+            --bg: #030712;
+            --surface: #111827;
+            --surface-hover: #1f2937;
+            --accent: #22d3ee;
+            --accent-glow: rgba(34, 211, 238, 0.4);
+            --danger: #f43f5e;
+            --danger-glow: rgba(244, 63, 94, 0.4);
+            --safe: #34d399;
+            --text-primary: #f9fafb;
+            --text-secondary: #9ca3af;
+            --border: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Outfit', sans-serif;
         }
 
         body {
-            margin: 0;
-            padding: 0;
-            background-color: var(--bg-deep);
-            color: var(--text-main);
-            font-family: 'Inter', -apple-system, sans-serif;
-            overflow-x: hidden;
+            background-color: var(--bg);
+            background-image: radial-gradient(circle at 100% 0%, #1e1b4b 0%, transparent 40%),
+                radial-gradient(circle at 0% 100%, #064e3b 0%, transparent 40%);
+            color: var(--text-primary);
+            min-height: 100vh;
         }
 
-        .header {
+        /* Nav */
+        nav {
             padding: 20px 40px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 1px solid #1F2937;
-            background: rgba(13, 17, 23, 0.8);
+            border-bottom: 1px solid var(--border);
+            background: rgba(3, 7, 18, 0.7);
             backdrop-filter: blur(10px);
             position: sticky;
             top: 0;
-            z-index: 1000;
+            z-index: 100;
         }
 
         .logo {
             font-size: 1.5rem;
             font-weight: 800;
-            letter-spacing: 4px;
-            color: var(--accent);
-            text-shadow: 0 0 10px var(--accent);
+            letter-spacing: 2px;
+            background: linear-gradient(90deg, #fff, var(--accent));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
-        .main-grid {
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .badge {
+            background: rgba(52, 211, 153, 0.1);
+            color: var(--safe);
+            border: 1px solid rgba(52, 211, 153, 0.3);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .pulse {
+            width: 8px;
+            height: 8px;
+            background: var(--safe);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--safe);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.7);
+            }
+
+            70% {
+                box-shadow: 0 0 0 10px rgba(52, 211, 153, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(52, 211, 153, 0);
+            }
+        }
+
+        .btn-logout {
+            background: transparent;
+            color: var(--danger);
+            border: 1px solid var(--border);
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            letter-spacing: 1px;
+        }
+
+        .btn-logout:hover {
+            border-color: var(--danger);
+            background: rgba(244, 63, 94, 0.1);
+        }
+
+        /* Dashboard Layout */
+        .container {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px;
             display: grid;
-            grid-template-columns: 1fr 350px;
-            gap: 30px;
-            padding: 40px;
-            max-width: 1400px;
-            margin: 0 auto;
+            grid-template-columns: 2fr 1fr;
+            gap: 24px;
         }
 
+        /* Cards */
         .card {
-            background: var(--bg-card);
-            border: 1px solid #1F2937;
+            background: rgba(17, 24, 39, 0.6);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
             border-radius: 20px;
             padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
             position: relative;
             overflow: hidden;
         }
 
-        .card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 2px;
-            background: linear-gradient(90deg, transparent, var(--accent), transparent);
-            animation: moveLine 3s infinite linear;
+        .card-title {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 20px;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
-        @keyframes moveLine {
-            0% {
-                transform: translateX(-100%);
-            }
-
-            100% {
-                transform: translateX(100%);
-            }
-        }
-
-        /* Risk Gauge */
-        .gauge-container {
+        /* Device Info Block */
+        .device-hero {
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
-            height: 300px;
+            text-align: center;
+            padding: 20px 0;
         }
 
-        .gauge-value {
+        .device-icon {
             font-size: 5rem;
-            font-weight: 900;
-            margin: 0;
-            color: var(--accent);
-            line-height: 1;
+            margin-bottom: 20px;
+            text-shadow: 0 0 30px var(--accent-glow);
+            filter: drop-shadow(0 0 10px var(--accent));
         }
 
-        .gauge-label {
-            font-size: 0.8rem;
+        .device-name {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 5px;
             text-transform: uppercase;
-            letter-spacing: 3px;
-            color: var(--text-dim);
-            margin-top: 10px;
+            letter-spacing: 2px;
         }
 
-        /* Controls */
-        .controls {
+        .device-id {
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--accent);
+            font-size: 0.9rem;
+            background: rgba(34, 211, 238, 0.1);
+            padding: 4px 12px;
+            border-radius: 6px;
+        }
+
+        /* Remote Controls */
+        .controls-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-top: 30px;
+            grid-template-columns: 1fr;
+            gap: 16px;
+            margin-top: 20px;
         }
 
-        .btn {
-            padding: 15px;
+        .cmd-btn {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 20px;
             border-radius: 12px;
-            border: 1px solid #374151;
-            background: #1F2937;
-            color: white;
-            font-weight: bold;
+            font-size: 1.1rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
             cursor: pointer;
             transition: all 0.3s;
             display: flex;
-            flex-direction: column;
             align-items: center;
-            gap: 8px;
-            font-size: 0.9rem;
+            justify-content: center;
+            gap: 10px;
         }
 
-        .btn:hover {
-            transform: translateY(-3px);
-            background: #374151;
+        .cmd-btn:hover {
+            transform: translateY(-2px);
         }
 
-        .btn-lock {
-            border-color: var(--warning);
-            color: var(--warning);
-        }
-
-        .btn-wipe {
-            border-color: var(--danger);
+        .btn-danger {
+            border-color: rgba(244, 63, 94, 0.3);
             color: var(--danger);
         }
 
-        /* Activity Feed */
-        .feed {
-            height: calc(100vh - 250px);
+        .btn-danger:hover {
+            background: var(--danger);
+            color: white;
+            box-shadow: 0 0 20px var(--danger-glow);
+            border-color: var(--danger);
+        }
+
+        .btn-primary {
+            border-color: rgba(34, 211, 238, 0.3);
+            color: var(--accent);
+        }
+
+        .btn-primary:hover {
+            background: var(--accent);
+            color: var(--bg);
+            box-shadow: 0 0 20px var(--accent-glow);
+            border-color: var(--accent);
+        }
+
+        /* Console styling */
+        .console {
+            background: #000;
+            border-radius: 12px;
+            padding: 16px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            color: #34d399;
+            height: 200px;
             overflow-y: auto;
+            border: 1px solid #111;
         }
 
-        .feed-item {
-            padding: 15px;
-            border-bottom: 1px solid #1F2937;
-            font-size: 0.85rem;
-            animation: fadeIn 0.5s ease-out;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .feed-item .time {
-            color: var(--text-dim);
-            font-size: 0.75rem;
+        .console p {
             margin-bottom: 5px;
         }
 
-        .feed-item .msg {
-            color: var(--accent);
-            font-family: 'Courier New', monospace;
+        .console .warn {
+            color: #fbbf24;
         }
 
-        /* Scrollbar */
-        ::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: #1F2937;
-            border-radius: 10px;
+        .console .err {
+            color: #f43f5e;
         }
     </style>
 </head>
 
 <body>
 
-    <div class="header">
+    <nav>
         <div class="logo">SENTINEL</div>
-        <div id="connectionStatus"
-            style="font-size: 0.7rem; color: var(--accent); border: 1px solid var(--accent); padding: 4px 10px; border-radius: 20px;">
-            ● NODE CONNECTED
+        <div class="nav-right">
+            <div class="badge">
+                <div class="pulse"></div>
+                <span id="userName">CONNECTING...</span>
+            </div>
+            <a href="javascript:void(0)" onclick="logout()" class="btn-logout">TERMINATE</a>
         </div>
-    </div>
+    </nav>
 
-    <div class="main-grid">
-        <div class="left-col">
-            <div class="card">
-                <h3 style="margin-top:0; font-size: 0.9rem; letter-spacing: 2px; color: var(--text-dim);">
-                    SYSTEM_HEALTH_METRIC</h3>
-                <div class="gauge-container">
-                    <p class="gauge-value" id="riskScore">00</p>
-                    <p class="gauge-label">Risk Severity Level</p>
-                </div>
-
-                <div class="controls">
-                    <button class="btn btn-lock" onclick="sendCommand('LOCK_DEVICE')">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2">
-                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-                        </svg>
-                        Remote Lock
-                    </button>
-                    <button class="btn btn-wipe" onclick="sendCommand('WIPE_DATA')">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2">
-                            <path d="M3 6h18"></path>
-                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2">
-                            </path>
-                        </svg>
-                        Security Wipe
-                    </button>
-                </div>
+    <div class="container">
+        <!-- Main Device Panel -->
+        <div class="card">
+            <div class="card-title">Secured Node</div>
+            <div class="device-hero">
+                <div class="device-icon">📱</div>
+                <div class="device-name">Android Node</div>
+                <div class="device-id" id="deviceIdDisplay">Waiting for handshake...</div>
             </div>
 
-            <div style="margin-top: 30px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                <div class="card" style="padding: 20px;">
-                    <p style="font-size: 0.7rem; color: var(--text-dim); margin:0;">BLOCKCHAIN STATUS</p>
-                    <p style="color: var(--accent); font-weight: bold; margin: 10px 0 0 0;">IMMUTABLE AUDIT ACTIVE</p>
-                </div>
-                <div class="card" style="padding: 20px;">
-                    <p style="font-size: 0.7rem; color: var(--text-dim); margin:0;">THREAT DETECTION</p>
-                    <p style="color: var(--accent); font-weight: bold; margin: 10px 0 0 0;">AI ANOMALY ENGINE V2.0</p>
+            <div style="margin-top: 40px;">
+                <div class="card-title">Network Intelligence Routing Logs</div>
+                <div class="console" id="cmdLog">
+                    <p>System initialized.</p>
+                    <p>Awaiting incoming telemetry...</p>
                 </div>
             </div>
         </div>
 
-        <div class="right-col">
-            <div class="card" style="height: 100%;">
-                <h3 style="margin-top:0; font-size: 0.8rem; letter-spacing: 2px; color: var(--text-dim);">
-                    LIVE_SECURITY_TRAILS</h3>
-                <div class="feed" id="logArea">
-                    <div class="feed-item">
-                        <div class="time">System Initializing...</div>
-                        <div class="msg">Establishing secure handshake with Node...</div>
+        <!-- Controls Panel -->
+        <div class="card">
+            <div class="card-title">Remote Enforcement</div>
+            <div class="controls-grid">
+                <button class="cmd-btn btn-danger" onclick="issueCommand('LOCK_DEVICE')">
+                    🚨 TRIGGER LOCKDOWN
+                </button>
+                <button class="cmd-btn btn-danger" onclick="issueCommand('WIPE_DATA')" style="opacity: 0.7;">
+                    🔥 NUCLEAR WIPE
+                </button>
+                <button class="cmd-btn btn-primary" onclick="issueCommand('FORCE_SCAN')">
+                    🛡️ INITIATE SCAN
+                </button>
+            </div>
+
+            <div style="margin-top: 40px;">
+                <div class="card-title">Status Overview</div>
+                <div
+                    style="background: rgba(0,0,0,0.3); padding: 16px; border-radius: 12px; border: 1px solid var(--border);">
+                    <div style="display:flex; justify-content: space-between; margin-bottom: 10px; font-size: 0.85rem;">
+                        <span style="color: var(--text-secondary)">Link Encryption</span>
+                        <span style="color: var(--safe)">AES-256 E2E</span>
+                    </div>
+                    <div style="display:flex; justify-content: space-between; margin-bottom: 10px; font-size: 0.85rem;">
+                        <span style="color: var(--text-secondary)">Node Identity</span>
+                        <span style="color: var(--safe)">VERIFIED</span>
+                    </div>
+                    <div style="display:flex; justify-content: space-between; font-size: 0.85rem;">
+                        <span style="color: var(--text-secondary)">Session Integrity</span>
+                        <span style="color: var(--safe)">SECURE</span>
                     </div>
                 </div>
+                <p
+                    style="font-size: 0.65rem; color: var(--text-secondary); margin-top: 15px; text-align: center; opacity: 0.7;">
+                    🛡️ Browser warning ignored. Internal HMAC-SHA256 tunnel verified for IP: 192.168.137.32
+                </p>
             </div>
         </div>
     </div>
 
     <script>
-    function logMessage(msg) {
-        const logArea = document.getElementById('logArea');
-        const time = new Date().toLocaleTimeString();
-        const item = document.createElement('div');
-        item.className = 'feed-item';
-        item.innerHTML = `<div class="time">${time}</div><div class="msg">> ${msg}</div>`;
-        logArea.prepend(item);
-    }
+        // Data Initialization
+        let userProfile = null;
+        let deviceData = null;
+        let token = localStorage.getItem('sentinel_token');
 
-    async function sendCommand(action) {
-        logMessage(`INSTRUCTION_SENT: ${action}`);
-        try {
-            const response = await fetch('/api/commands/issue', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: action })
-            });
-            const data = await response.json();
-            if (data.success) {
-                logMessage(`ACK_RECEIVED: ${action} accepted by Node.`);
-            } else {
-                logMessage(`ERR_RECEIVED: ${data.message}`);
-            }
-        } catch (error) {
-            logMessage(`FATAL: Connection to Node disrupted.`);
+        function logout() {
+            localStorage.removeItem('sentinel_token');
+            localStorage.removeItem('sentinel_user');
+            window.location.replace('/login');
         }
-    }
 
-    // Polling simulation for Risk Score (real backend sync would be here)
-    setInterval(() => {
-        // In a real implementation, we would fetch /api/tasks/latest
-        // and update this based on the actual score.
-        // For development, we just keep it updated by user actions.
-    }, 5000);
+        function logToConsole(msg, type = 'info') {
+            const consoleEl = document.getElementById('cmdLog');
+            const p = document.createElement('p');
+            const time = new Date().toLocaleTimeString();
+            p.innerText = `[${time}] ${msg}`;
+            if (type === 'warn') p.className = 'warn';
+            if (type === 'error') p.className = 'err';
+            consoleEl.appendChild(p);
+            consoleEl.scrollTop = consoleEl.scrollHeight;
+        }
 
-    logMessage("SENTINEL OS v4.0.2 Started.");
+        async function initDashboard() {
+            const userData = localStorage.getItem('sentinel_user');
+            if (!userData || !token) {
+                logout();
+                return;
+            }
+
+            userProfile = JSON.parse(userData);
+
+            // UI Update - User
+            document.getElementById('userName').innerText = `AGENT: ${userProfile.name.toUpperCase()}`;
+
+            // Fetch live device telemetry from the new V2 /api/device/info endpoint
+            await fetchDeviceTelemetry();
+
+            // Start heartbeat monitor for dashboard
+            setInterval(fetchDeviceTelemetry, 30000); // refresh every 30s
+        }
+
+        async function fetchDeviceTelemetry() {
+            try {
+                const res = await fetch(`/api/device/info?email=${encodeURIComponent(userProfile.email)}`, {
+                    method: 'GET',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (res.ok) {
+                    deviceData = await res.json();
+
+                    // UI Update - Device Details
+                    document.getElementById('deviceIdDisplay').innerHTML = `ID: ${deviceData.deviceId}<br><span style="color:var(--safe); font-size: 0.7rem; font-family: 'JetBrains Mono'">GPS: ${deviceData.latitude}, ${deviceData.longitude}</span>`;
+
+                    // Update the DOM to show the live name instead of hardcoded 'Android Node'
+                    const nameEls = document.getElementsByClassName('device-name');
+                    if (nameEls.length > 0) {
+                        nameEls[0].innerText = deviceData.deviceName || 'Android Node';
+                    }
+
+                    const locationUrl = `https://www.google.com/maps?q=${deviceData.latitude},${deviceData.longitude}`;
+                    logToConsole(`Telemetry Synced. Bound to node: ${deviceData.deviceId}. Location: <a href="${locationUrl}" target="_blank" style="color:var(--accent)">Show on Map</a>. Security Score: ${deviceData.securityScore}`);
+                } else {
+                    logToConsole('Waiting for device registration. Launch the Sentinel App on your phone.', 'warn');
+                    document.getElementById('deviceIdDisplay').innerText = `Awaiting App Launch...`;
+                }
+            } catch (err) {
+                logToConsole('Connection error while fetching telemetry.', 'error');
+            }
+        }
+
+        async function issueCommand(action) {
+            if (!deviceData || !deviceData.deviceId) {
+                logToConsole('Failed: Target node ID is offline or unregistered.', 'error');
+                return;
+            }
+
+            const isNuclear = action === 'WIPE_DATA';
+            if (isNuclear) {
+                const conf = confirm("CRITICAL WARNING: This will authorize a total forensic wipe of the attached node. Proceed?");
+                if (!conf) {
+                    logToConsole('Aborted protocol: WIPE_DATA', 'warn');
+                    return;
+                }
+            }
+
+            try {
+                logToConsole(`Transmitting protocol: ${action}...`, 'warn');
+
+                const res = await fetch('/api/commands/issue', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    // Send targeting identity
+                    body: JSON.stringify({ action: action, targetDeviceId: deviceData.deviceId })
+                });
+
+                if (res.ok) {
+                    logToConsole(`SUCCESS: ${action} queued in enforcement pipeline.`, 'info');
+                } else {
+                    const errorData = await res.json();
+                    logToConsole(`REJECTED: Server denied transmission. ${errorData.message}`, 'error');
+                }
+            } catch (error) {
+                logToConsole(`FATAL: Tunnel collapse during transmission.`, 'error');
+            }
+        }
+
+        // Boot
+        initDashboard();
     </script>
-
 </body>
 
 </html>

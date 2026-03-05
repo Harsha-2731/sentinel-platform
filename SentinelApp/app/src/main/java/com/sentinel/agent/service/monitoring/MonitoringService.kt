@@ -15,6 +15,9 @@ import com.sentinel.agent.risk.RiskCalculator
 import com.sentinel.agent.risk.HoneytrapManager
 import com.sentinel.agent.sensor.movement.MovementAnalyzer
 import com.sentinel.agent.service.emergency.EmergencyManager
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.Priority
 import kotlinx.coroutines.*
 import android.util.Log
 import com.sentinel.agent.data.local.AppDatabase
@@ -38,6 +41,10 @@ class MonitoringService : Service() {
     private val db by lazy { AppDatabase.getDatabase(this) }
     private val securityHelper by lazy { SecurityHelper(this) }
     
+    private lateinit var fusedLocationClient: FusedLocationProviderClient
+    private var currentLatitude: Double = 0.0
+    private var currentLongitude: Double = 0.0
+
     private lateinit var honeytrapManager: HoneytrapManager
     
     private var monitoringJob: Job? = null
@@ -49,7 +56,7 @@ class MonitoringService : Service() {
                 isEmergencyActive = false
                 com.sentinel.agent.risk.RiskCalculator.resetScore()
             } else if (intent?.action == "com.sentinel.agent.SIMULATE_TAMPER") {
-                com.sentinel.agent.risk.RiskCalculator.onAnomalyDetected("DEVICE_TAMPERED", "DEBUG: Simulated Hardware Tampering.")
+                RiskCalculator.onEvent("TAMPER_MEMORY", "DEBUG: Simulated Hardware Tampering.")
                 checkRiskLevel()
             }
         }
@@ -68,6 +75,7 @@ class MonitoringService : Service() {
 
         sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
         accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)!!
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
         
         // V7: Initialize and Deploy Honeytrap
         honeytrapManager = HoneytrapManager(this) { delta, reasoning ->
@@ -111,8 +119,8 @@ class MonitoringService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         val notification: Notification = NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle("Sentinel: Your Phone is Protected")
-            .setContentText("Personal AI Guardian is actively shielding you from scams.")
+            .setContentTitle("SENTINEL: 24/7 Background Guardian")
+            .setContentText("Autonomous security monitoring active. Shielding your device from suspicious entities.")
             .setSmallIcon(android.R.drawable.ic_lock_idle_lock)
             .setPriority(NotificationCompat.PRIORITY_LOW)
             .setOngoing(true)
@@ -133,10 +141,16 @@ class MonitoringService : Service() {
         )
     }
     
-    // V3 Hardening: Background Surveillance Loop for integrity
+    // V60: Enhanced Background Surveillance Loop (Heartbeats, Reg, Pooling)
     private fun startSurveillanceLoop() {
         monitoringJob = CoroutineScope(Dispatchers.IO).launch {
+            // 0. Auto-Register device globally on service start
+            registerDevice()
+            
+            var heartbeatCounter = 0
             while (isActive) {
+                // Polling runs every 1 second (fast actions)
+                
                 // 1. Fetch GPS location periodically (mocked for now)
                 fetchLocation()
                 
@@ -147,61 +161,169 @@ class MonitoringService : Service() {
                     checkRiskLevel()
                 }
 
-                // 3. Poll for Remote Web Dashboard Commands
+                // 3. Poll for Remote Web Dashboard Commands (Runs constantly)
                 fetchPendingCommands()
 
-                // 3. V3 Hardening: Memory Hooking Detection
+                // 4. V3 Hardening: Memory Hooking Detection
                 if (securityHelper.isFridaDetected()) {
                     Log.e("MonitoringService", "CRITICAL: Frida/Hooking detected.")
                     com.sentinel.agent.risk.RiskCalculator.onHookingDetected()
                     checkRiskLevel()
                 }
 
-                // 4. V3 Hardening: Application Integrity Check
-                // Note: Binary signature hex should be the developer's release key
+                // 5. V3 Hardening: Application Integrity Check
                 if (!securityHelper.isApkSignatureValid("EXPECTED_RELEASE_SIGNATURE_HEX")) {
                     Log.e("MonitoringService", "CRITICAL: APK Tampered / Repackaged.")
                     com.sentinel.agent.risk.RiskCalculator.onTamperDetected()
                     checkRiskLevel()
                 }
                 
-                // 5. V31: Advanced Device Integrity Check
+                // 6. V31: Advanced Device Integrity Check
                 val integrity = com.sentinel.agent.service.integrity.IntegrityManager.checkIntegrity(this@MonitoringService)
                 if (integrity is com.sentinel.agent.service.integrity.IntegrityManager.IntegrityResult.COMPROMISED) {
-                    Log.e("MonitoringService", "CRITICAL: Device Integrity Compromised: ${integrity.reason}")
-                    com.sentinel.agent.risk.RiskCalculator.onAnomalyDetected("DEVICE_TAMPERED", "Hardware/Root Tampering Detected: ${integrity.reason}")
+                    Log.e("MonitoringService", "CRITICAL: Device Integrity Compromised: \${integrity.reason}")
+                    RiskCalculator.onEvent("TAMPER_APK", "Hardware/Root Tampering Detected: \${integrity.reason}")
                     checkRiskLevel()
                 }
 
-                // 6. Behavioral Context: Foreground App Tracking
+                // 7. Behavioral Context: Foreground App Tracking
                 checkForegroundApp()
 
-                delay(2000) // V29: Respond to dashboard commands in near real-time (2s)
+                // 8. 30-Second Heartbeat mechanism
+                heartbeatCounter++
+                if (heartbeatCounter >= 30) {
+                    sendHeartbeat()
+                    heartbeatCounter = 0
+                }
+
+                delay(1000) // V52: High-frequency polling (1s) for near-instant remote lockdown
             }
         }
     }
 
+    private suspend fun registerDevice() {
+        try {
+            val deviceId = securityHelper.getDeviceId()
+            
+            // Fix: Use the real logged-in user email, not a hardcoded placeholder
+            val jwtStr = securityHelper.getJwtToken() ?: return // Don't register if not logged in
+            val userEmail = securityHelper.getUserEmail() ?: return // Don't register without email
+            
+            val deviceName = Build.MODEL ?: "Unknown Device"
+            val manufacturer = Build.MANUFACTURER ?: "Unknown"
+
+            val request = mapOf(
+                "userEmail" to userEmail,
+                "deviceId" to deviceId,
+                "deviceName" to "$manufacturer $deviceName",
+                "model" to Build.DEVICE
+            )
+
+            val service = RetrofitClient.createService(
+                getToken = { securityHelper.getJwtToken() },
+                getSecret = { securityHelper.getHmacSecret() ?: "" },
+                getDeviceId = { deviceId }
+            )
+            
+            service.registerDevice(request)
+            Log.d("MonitoringService", "Device Auto-Registration Complete for: $userEmail")
+        } catch (e: Exception) {
+            Log.e("MonitoringService", "Device Auto-Registration Failed: ${e.message}")
+        }
+    }
+
+    private suspend fun sendHeartbeat() {
+        try {
+            val deviceId = securityHelper.getDeviceId()
+            
+            val request = mapOf(
+                "deviceId" to deviceId,
+                "battery" to getBatteryLevel(),
+                "securityScore" to RiskCalculator.getCurrentScore(),
+                "status" to RiskCalculator.getCurrentState().name,
+                "latitude" to currentLatitude,
+                "longitude" to currentLongitude
+            )
+
+            val service = RetrofitClient.createService(
+                getToken = { securityHelper.getJwtToken() },
+                getSecret = { securityHelper.getHmacSecret() ?: "" },
+                getDeviceId = { deviceId }
+            )
+            
+            service.sendHeartbeat(request)
+            Log.d("MonitoringService", "Heartbeat Ping Sent.")
+        } catch (e: Exception) {
+            Log.e("MonitoringService", "Heartbeat Ping Failed: \${e.message}")
+        }
+    }
+
+    private fun getBatteryLevel(): Int {
+        val intentFilter = IntentFilter(Intent.ACTION_BATTERY_CHANGED)
+        val batteryStatus: Intent? = registerReceiver(null, intentFilter)
+        val level: Int = batteryStatus?.getIntExtra(android.os.BatteryManager.EXTRA_LEVEL, -1) ?: -1
+        val scale: Int = batteryStatus?.getIntExtra(android.os.BatteryManager.EXTRA_SCALE, -1) ?: -1
+        return if (level != -1 && scale != -1) {
+            (level * 100 / scale.toFloat()).toInt()
+        } else {
+            100
+        }
+    }
+
     private fun fetchLocation() {
-        // Mock GPS Fetch
-        // In a real implementation, this would initiate location updates
-        // and process the results.
-        // For now, just a placeholder to simulate activity.
-        // delay(10000) // This delay is handled by the surveillance loop's delay
-        // Logic: evaluate speed, update risk if anomalies.
+        if (androidx.core.app.ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+            return
+        }
+        
+        try {
+            fusedLocationClient.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, null)
+                .addOnSuccessListener { location ->
+                    if (location != null) {
+                        currentLatitude = location.latitude
+                        currentLongitude = location.longitude
+                        Log.d("MonitoringService", "GPS Refreshed: $currentLatitude, $currentLongitude")
+                    }
+                }
+        } catch (e: Exception) {
+            Log.e("MonitoringService", "Location Fetch Failed: ${e.message}")
+        }
     }
 
     private suspend fun fetchPendingCommands() {
         try {
-            val response = RetrofitClient.createService({ securityHelper.getJwtToken() }, { securityHelper.getHmacSecret() ?: "" }).getPendingCommands()
+            val deviceId = securityHelper.getDeviceId()
+            val service = RetrofitClient.createService(
+                getToken = { securityHelper.getJwtToken() }, 
+                getSecret = { securityHelper.getHmacSecret() ?: "" },
+                getDeviceId = { deviceId }
+            )
+            val response = service.getPendingCommands()
             if (response.isSuccessful) {
                 val data = response.body()
                 if (data != null && data["success"] == true) {
                     val commands = data["commands"] as? List<Map<String, Any>>
                     commands?.forEach { cmd ->
                         val action = cmd["action"] as? String
-                        Log.e("MonitoringService", "CRITICAL: Received Remote Dashboard Command: $action")
-                        if (action == "LOCK_DEVICE" || action == "WIPE_DATA") {
-                            launchEmergencyLockdown("Remote Command Received: $action")
+                        val commandId = cmd["id"] as? String ?: ""
+                        
+                        Log.e("MonitoringService", "CRITICAL: Received Remote Dashboard Command: \$action")
+                        
+                        var executed = false
+                        if (action == "LOCK_DEVICE") {
+                            launchEmergencyLockdown("Remote Lockdown Command Received")
+                            executed = true
+                        } else if (action == "WIPE_DATA") {
+                            performNuclearWipe()
+                            executed = true
+                        } else if (action == "FORCE_SCAN") {
+                            // Dummy force scan
+                            RiskCalculator.onEvent("MANUAL_SCAN", "User requested remote system scan.")
+                            executed = true
+                        }
+                        
+                        if (executed && commandId.isNotEmpty()) {
+                            // Acknowledge execution back to server
+                            service.completeCommand(mapOf("commandId" to commandId))
                         }
                     }
                 }
@@ -212,13 +334,13 @@ class MonitoringService : Service() {
     }
 
     private fun checkRiskLevel() {
-        when (com.sentinel.agent.risk.RiskCalculator.getRiskLevel()) {
-            RiskCalculator.RiskLevel.NORMAL -> { /* Do nothing */ }
-            RiskCalculator.RiskLevel.SUSPICION -> {
+        when (RiskCalculator.getCurrentState()) {
+            RiskCalculator.RiskState.SECURE -> { /* Do nothing */ }
+            RiskCalculator.RiskState.VIGILANT -> {
                 // User vibration alert, 5 sec cancel option logic will be here
-                emergencyManager.triggerSuspicionMode(applicationContext, com.sentinel.agent.risk.RiskCalculator.currentRiskScore)
+                emergencyManager.triggerSuspicionMode(applicationContext, RiskCalculator.getCurrentScore())
             }
-            RiskCalculator.RiskLevel.EMERGENCY -> {
+            RiskCalculator.RiskState.LOCKDOWN -> {
                 if (!isEmergencyActive) {
                     launchEmergencyLockdown("System Integrity Compromised. Revoking Agent Identity.")
                 }
@@ -259,7 +381,7 @@ class MonitoringService : Service() {
 
                         if (isSensitive) {
                             Log.i("MonitoringService", "CONTEXT_AWARE: Sensitive App Category detected ($currentPackage). Escalating vigilance.")
-                            com.sentinel.agent.risk.RiskCalculator.onAnomalyDetected("SENSITIVE_APP_LAUNCH", "Economic/Finance agent context detected. High-sensitivity behavioral monitoring enabled.")
+                            RiskCalculator.onEvent("AGENT_PROMPT_SECURITY", "Economic/Finance agent context detected. High-sensitivity behavioral monitoring enabled.")
                             checkRiskLevel()
                         }
                     } catch (e: Exception) {
@@ -282,6 +404,23 @@ class MonitoringService : Service() {
             }
             startActivity(intent)
         }
+    }
+
+    private fun performNuclearWipe() {
+        Log.e("MonitoringService", "CRITICAL: EXECUTING NUCLEAR WIPE PROTOCOL")
+        securityHelper.wipeAllData()
+        
+        // Notify any active UI that credentials are gone
+        val intent = Intent(this, com.sentinel.agent.ui.LoginActivity::class.java).apply {
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+            putExtra("WIPE_REASON", "REMOTE_WIPE_SUCCESS")
+        }
+        startActivity(intent)
+        
+        // Stopping service and killing process to ensure no memory remains
+        serviceScope.cancel()
+        stopSelf()
+        android.os.Process.killProcess(android.os.Process.myPid())
     }
 
     override fun onDestroy() {

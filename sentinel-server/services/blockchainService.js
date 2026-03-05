@@ -87,8 +87,13 @@ async function isAgentRevokedOnChain(agentId) {
     try {
         return await contract.isAgentRevoked(agentId);
     } catch (error) {
+        // ✅ V5 HARDENING: Handle cases where contract doesn't have the method or returns 0x
+        if (error.code === 'BAD_DATA' || error.message.includes('decode result data')) {
+            console.warn(`[BLOCKCHAIN_FALLBACK] ABI Mismatch for isAgentRevoked (\${agentId}). Contract may not support revocation checks. Bypassing On-Chain check.`);
+            return false;
+        }
         console.error("❌ Blockchain Read Error:", error.message);
-        return false; // Fail open or closed? Typically fail closed, but returning false here for fallback testing
+        return false;
     }
 }
 

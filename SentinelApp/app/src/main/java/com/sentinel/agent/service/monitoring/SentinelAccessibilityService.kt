@@ -41,8 +41,12 @@ class SentinelAccessibilityService : AccessibilityService() {
         if (packageName == "com.decoy.shopping.agent") {
             Log.i("SentinelAccessibility", "Deep monitoring active for Decoy Store.")
             
-            // Check for unusual overlay windows (Simplistic heuristic for demo)
-            // Real detection involves checking WindowManager flags
+            // V54: Behavioral Correlation
+            // If any background agent is scraping prices while significant events occurred, escalate.
+            if (RiskCalculator.getCurrentState() == RiskCalculator.RiskState.VIGILANT) {
+                Log.w("SentinelAccessibility", "VIGILANT_MODE: Scaling risk due to active scraping in suspicion state.")
+                RiskCalculator.onEvent("BEHAVIOR_BURST", "Active UI scraping detected while device is in VIGILANT state.")
+            }
         }
 
         rootNode.recycle()

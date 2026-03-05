@@ -18,33 +18,42 @@ object IntegrityManager {
     fun checkIntegrity(context: Context): IntegrityResult {
         val buildTags = android.os.Build.TAGS
         val isRooted = checkRootFiles() || (buildTags != null && buildTags.contains("test-keys"))
+        val isTampered = checkZygisk() || checkLibraryInjection()
         
-        // In a real implementation, we would call the Play Integrity API here
-        // and process the token on the backend.
-        
-        return if (isRooted) {
-            IntegrityResult.COMPROMISED("ROOTED_DEVICE")
-        } else {
-            IntegrityResult.SECURE
+        return when {
+            isRooted -> IntegrityResult.COMPROMISED("ROOTED_DEVICE")
+            isTampered -> IntegrityResult.COMPROMISED("DYNAMIC_TAMPERING_DETECTED")
+            else -> IntegrityResult.SECURE
         }
     }
 
     private fun checkRootFiles(): Boolean {
         val paths = arrayOf(
-            "/system/app/Superuser.apk",
-            "/sbin/su",
-            "/system/bin/su",
-            "/system/xbin/su",
-            "/data/local/xbin/su",
-            "/data/local/bin/su",
-            "/system/sd/xbin/su",
-            "/system/bin/failsafe/su",
-            "/data/local/su"
+            "/system/app/Superuser.apk", "/sbin/su", "/system/bin/su",
+            "/system/xbin/su", "/data/local/xbin/su", "/data/local/bin/su",
+            "/system/sd/xbin/su", "/system/bin/failsafe/su", "/data/local/su"
         )
         for (path in paths) {
             if (File(path).exists()) return true
         }
         return false
+    }
+
+    private fun checkZygisk(): Boolean {
+        return try {
+            val file = File("/proc/self/mounts")
+            val content = file.readText()
+            content.contains("zygisk") || content.contains("lsposed")
+        } catch (e: Exception) { false }
+    }
+
+    private fun checkLibraryInjection(): Boolean {
+        return try {
+            val file = File("/proc/self/maps")
+            val content = file.readText()
+            val maliciousLibs = listOf("frida", "gum-js", "xkposed", "sandhook", "edxp")
+            maliciousLibs.any { content.contains(it, ignoreCase = true) }
+        } catch (e: Exception) { false }
     }
 
     sealed class IntegrityResult {

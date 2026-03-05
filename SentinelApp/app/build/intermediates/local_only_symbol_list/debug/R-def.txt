@@ -25,6 +25,8 @@ id activateAccessibilityBtn
 id activateAdminBtn
 id authStatusText
 id backToLoginText
+id biometricStatusText
+id btnAttackFrida
 id btnAttackNetwork
 id btnAttackPrompt
 id btnAttackUiPrice

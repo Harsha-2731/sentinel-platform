@@ -32,9 +32,19 @@ interface ApiService {
     @GET("api/tasks")
     suspend fun getTasks(): Response<List<Map<String, Any>>>
 
+    @POST("api/device/register")
+    suspend fun registerDevice(@Body deviceData: Map<String, String>): Response<Map<String, Any>>
+
+    @POST("api/device/heartbeat")
+    suspend fun sendHeartbeat(@Body heartbeatData: Map<String, Any>): Response<Map<String, Any>>
+
+    // Modify the existing to accept dynamic deviceId
     @JvmSuppressWildcards
     @GET("api/commands/pending")
     suspend fun getPendingCommands(): Response<Map<String, Any>>
+
+    @POST("api/commands/complete")
+    suspend fun completeCommand(@Body commandData: Map<String, String>): Response<Map<String, Any>>
 
     @JvmSuppressWildcards
     @GET("api/registry/list")

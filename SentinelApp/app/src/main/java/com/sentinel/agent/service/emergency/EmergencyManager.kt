@@ -123,9 +123,8 @@ class EmergencyManager {
     private fun revokeLocalAgentAuthority(context: Context) {
         val securityHelper = com.sentinel.agent.utils.SecurityHelper(context)
         
-        // V35: 10/10 Hardening - Actual Token Self-Destruct
-        securityHelper.saveJwtToken("")
-        securityHelper.saveHmacSecret("")
+        // V35: 10/10 Hardening - Proper credential removal (not empty string)
+        securityHelper.clearAuthorities()
         
         // Set persistent lockdown flag
         securityHelper.setLockdownActive(true)

@@ -24,6 +24,17 @@ class LoginActivity : AppCompatActivity() {
 
         securityHelper = SecurityHelper(this)
 
+        // V35: Persistent Lockdown Enforcement - MUST BE FIRST
+        if (securityHelper.isLockdownActive()) {
+            val lockIntent = Intent(this, EmergencyActivity::class.java).apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                putExtra("REASONING", "System Lockdown: Identity Verification Required to unlock.")
+            }
+            startActivity(lockIntent)
+            finish()
+            return
+        }
+
         val emailInput = findViewById<EditText>(R.id.emailInput)
         val passwordInput = findViewById<EditText>(R.id.passwordInput)
         val loginBtn = findViewById<Button>(R.id.loginBtn)
@@ -48,14 +59,19 @@ class LoginActivity : AppCompatActivity() {
                             Pair(fingerprint, true)
                         }
                         
+                        val apiService = RetrofitClient.createService()
+                        
+                        // V51: Hardware Attestation (10/10 Hardening)
+                        val attestationNonce = java.util.UUID.randomUUID().toString()
+                        val integrityToken = com.sentinel.agent.service.integrity.PlayIntegrityManager.getAttestationToken(this@LoginActivity, attestationNonce)
+                        
                         val request = com.sentinel.agent.data.model.LoginRequest(
                             email = email,
                             password = pass,
-                            deviceId = deviceFingerprint
+                            deviceId = deviceFingerprint,
+                            integrityToken = integrityToken
                         )
                         
-                        // We use a clean Retrofit instance (no token needed for login)
-                        val apiService = RetrofitClient.createService()
                         val response = withContext(Dispatchers.IO) {
                             apiService.loginUser(request)
                         }
@@ -66,6 +82,8 @@ class LoginActivity : AppCompatActivity() {
                             // V4 Hardening: Dynamically fetched variables instead of hardcoded strings
                             user.token?.let { securityHelper.saveJwtToken(it) }
                             user.hmacSecret?.let { securityHelper.saveHmacSecret(it) }
+                            // Fix: Save actual user email to use for device registration
+                            securityHelper.saveUserEmail(email)
 
                             Toast.makeText(this@LoginActivity, "Agent Authority Authorized", Toast.LENGTH_SHORT).show()
                             

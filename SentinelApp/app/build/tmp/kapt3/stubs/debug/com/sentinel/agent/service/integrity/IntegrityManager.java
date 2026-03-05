@@ -4,7 +4,7 @@ package com.sentinel.agent.service.integrity;
  * IntegrityManager: Advanced Device Attestation
  * Handles Root detection, Bootloader checks, and Play Integrity framework.
  */
-@kotlin.Metadata(mv = {1, 9, 0}, k = 1, xi = 48, d1 = {"\u0000&\n\u0002\u0018\u0002\n\u0002\u0010\u0000\n\u0002\b\u0002\n\u0002\u0010\u000e\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0010\u000b\n\u0002\b\u0002\b\u00c6\u0002\u0018\u00002\u00020\u0001:\u0001\u000bB\u0007\b\u0002\u00a2\u0006\u0002\u0010\u0002J\u000e\u0010\u0005\u001a\u00020\u00062\u0006\u0010\u0007\u001a\u00020\bJ\b\u0010\t\u001a\u00020\nH\u0002R\u000e\u0010\u0003\u001a\u00020\u0004X\u0082T\u00a2\u0006\u0002\n\u0000\u00a8\u0006\f"}, d2 = {"Lcom/sentinel/agent/service/integrity/IntegrityManager;", "", "()V", "TAG", "", "checkIntegrity", "Lcom/sentinel/agent/service/integrity/IntegrityManager$IntegrityResult;", "context", "Landroid/content/Context;", "checkRootFiles", "", "IntegrityResult", "app_debug"})
+@kotlin.Metadata(mv = {1, 9, 0}, k = 1, xi = 48, d1 = {"\u0000&\n\u0002\u0018\u0002\n\u0002\u0010\u0000\n\u0002\b\u0002\n\u0002\u0010\u000e\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0010\u000b\n\u0002\b\u0004\b\u00c6\u0002\u0018\u00002\u00020\u0001:\u0001\rB\u0007\b\u0002\u00a2\u0006\u0002\u0010\u0002J\u000e\u0010\u0005\u001a\u00020\u00062\u0006\u0010\u0007\u001a\u00020\bJ\b\u0010\t\u001a\u00020\nH\u0002J\b\u0010\u000b\u001a\u00020\nH\u0002J\b\u0010\f\u001a\u00020\nH\u0002R\u000e\u0010\u0003\u001a\u00020\u0004X\u0082T\u00a2\u0006\u0002\n\u0000\u00a8\u0006\u000e"}, d2 = {"Lcom/sentinel/agent/service/integrity/IntegrityManager;", "", "()V", "TAG", "", "checkIntegrity", "Lcom/sentinel/agent/service/integrity/IntegrityManager$IntegrityResult;", "context", "Landroid/content/Context;", "checkLibraryInjection", "", "checkRootFiles", "checkZygisk", "IntegrityResult", "app_debug"})
 public final class IntegrityManager {
     @org.jetbrains.annotations.NotNull
     private static final java.lang.String TAG = "IntegrityManager";
@@ -25,6 +25,14 @@ public final class IntegrityManager {
     }
     
     private final boolean checkRootFiles() {
+        return false;
+    }
+    
+    private final boolean checkZygisk() {
+        return false;
+    }
+    
+    private final boolean checkLibraryInjection() {
         return false;
     }
     

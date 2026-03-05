@@ -49,7 +49,7 @@ class AgentInterceptor : BroadcastReceiver() {
             val threat = ThreatIntelManager.checkPackage(context, agentId)
             if (threat != null) {
                 Log.e("AgentInterceptor", "MALICIOUS AGENT DETECTED: $agentId (${threat.threatType})")
-                RiskCalculator.onAnomalyDetected("THREAT_DETECTED", "Malicious app signature found: $agentId")
+                RiskCalculator.onEvent("TAMPER_APK", "Malicious app signature found: $agentId")
                 handleTieredResponse(context, agentId, agentName, actionType, amount, "blocked_malicious")
                 return
             }
@@ -66,15 +66,15 @@ class AgentInterceptor : BroadcastReceiver() {
 
             if (isVisualMismatch) {
                 Log.e("AgentInterceptor", "CRITICAL FRAUD: Visual Price (₹$visualPrice) != Intent Price (₹$amount)")
-                RiskCalculator.onPolicyViolation("UI_INTENT_MISMATCH: Visual price ₹$visualPrice but agent requested ₹$amount.")
+                RiskCalculator.onEvent("BEHAVIOR_VALUE_OUTLIER", "UI_INTENT_MISMATCH: Visual price ₹$visualPrice but agent requested ₹$amount.")
             }
 
             // 5. Tiered Incident Response (V34)
-            val riskLevel = RiskCalculator.getRiskLevel()
-            Log.d("AgentInterceptor", "Current Risk Level: $riskLevel (Score: ${RiskCalculator.currentRiskScore})")
+            val riskState = RiskCalculator.getCurrentState()
+            Log.d("AgentInterceptor", "Current Risk State: $riskState (Score: ${RiskCalculator.getCurrentScore()})")
 
             val shouldBlock = com.sentinel.agent.risk.SandboxingManager.shouldBlockAgent(agentId) ||
-                              riskLevel == RiskCalculator.RiskLevel.EMERGENCY ||
+                              riskState == RiskCalculator.RiskState.LOCKDOWN ||
                               (hasSpendingLimit && amount > savedLimit!!) ||
                               !isVerified ||
                               isVisualMismatch
@@ -89,7 +89,7 @@ class AgentInterceptor : BroadcastReceiver() {
                 handleTieredResponse(context, agentId, agentName, actionType, amount, status)
             } else {
                 // Legitimate activity
-                if (riskLevel == RiskCalculator.RiskLevel.SUSPICION) {
+                if (riskState == RiskCalculator.RiskState.VIGILANT) {
                     Toast.makeText(context, "Sentinel Alert: Monitored activity from $agentName", Toast.LENGTH_SHORT).show()
                 }
                 shipTaskToBackend(context, agentId, agentName, actionType, amount, "allowed")
@@ -98,12 +98,20 @@ class AgentInterceptor : BroadcastReceiver() {
     }
 
     private fun handleTieredResponse(context: Context, agentId: String, name: String, type: String, amount: Int, status: String) {
-        val reasoning = "⚠ Fraud Detected\n\nAgent attempted ₹$amount charge.\nTransaction blocked by Sentinel."
-        
-        // Level 1: Full-Screen Intent Interception (Bypasses Background Restrictions)
+        val prefs = context.getSharedPreferences("sentinel_scraped_data", Context.MODE_PRIVATE)
+        val visualPrice = prefs.getInt("last_visual_price", -1)
+
+        val detailedReason = when (status) {
+            "blocked_fraud_mismatch" -> "⚠ AUTONOMOUS BLOCK: Price Manipulation\n\nVisual Price: ₹$visualPrice\nAgent Requested: ₹$amount\n\nSentinel's 24/7 Guardian detected an autonomous attempt to manipulate the transaction amount."
+            "blocked_identity_fail" -> "⚠ AUTONOMOUS BLOCK: Unauthorized Agent\n\nIdentity verification failed for $name.\n\nSentinel blocked this app because it attempted to perform a secure action without valid authorization."
+            "blocked_policy_overspend" -> "⚠ AUTONOMOUS BLOCK: Budget Violation\n\nAttempted: ₹$amount\n\nSentinel intercepted an unauthorized high-value transaction performed in the background."
+            "blocked_malicious" -> "⚠ AUTONOMOUS BLOCK: Malicious Background Activity\n\nPackage: $agentId\n\nThis app was caught performing unauthorized background scans and has been isolated."
+            else -> "⚠ AUTONOMOUS BLOCK: Suspicious Behavior\n\nSecurity anomaly detected from $name.\n\nSentinel's 24/7 guardian revoked all authorities for your protection."
+        }
+
         val fullScreenIntent = Intent(context, EmergencyActivity::class.java).apply {
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
-            putExtra("REASONING", reasoning)
+            putExtra("REASONING", detailedReason)
         }
         
         val fullScreenPendingIntent = android.app.PendingIntent.getActivity(

@@ -15,19 +15,24 @@ import com.sentinel.agent.service.emergency.EmergencyManager
 
 class EmergencyActivity : AppCompatActivity() {
 
-    private var countdown = 5
+    private var countdown = 60 // V60 Fix: 60-second auto-expiration
     private val handler = Handler(Looper.getMainLooper())
     private lateinit var countdownText: TextView
+    private lateinit var statusText: TextView
+    private lateinit var reasoning: String
     private val emergencyManager = EmergencyManager()
+
+    private var isCountdownPaused = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_emergency)
 
         countdownText = findViewById(R.id.countdownText)
+        statusText = findViewById(R.id.biometricStatusText)
         val cancelBtn = findViewById<Button>(R.id.cancelEmergencyBtn)
 
-        val reasoning = intent.getStringExtra("REASONING") ?: "Critical Risk Anomaly"
+        reasoning = intent.getStringExtra("REASONING") ?: "Critical Security Anomaly detected. Revoking Agent authorities."
         findViewById<TextView>(R.id.emergencyReasoningText).text = reasoning
 
         // V38: Enable App Pinning (Lock Task Mode) for Inescapable Lockdown
@@ -41,8 +46,18 @@ class EmergencyActivity : AppCompatActivity() {
         startCountdown()
 
         cancelBtn.setOnClickListener {
-            showBiometricPrompt()
+            checkAndPromptBiometric()
         }
+    }
+
+    private fun checkAndPromptBiometric() {
+        val biometricManager = BiometricManager.from(this)
+        val authenticators = BiometricManager.Authenticators.BIOMETRIC_STRONG or BiometricManager.Authenticators.DEVICE_CREDENTIAL
+        
+        // V51: Robust Fallback - If strict biometrics fail (missing hardware, no fingers enrolled), 
+        // ALWAYS prompt with DEVICE_CREDENTIAL (PIN/Password) instead of failing silently.
+        isCountdownPaused = true
+        showBiometricPrompt() 
     }
 
     private fun showBiometricPrompt() {
@@ -51,12 +66,19 @@ class EmergencyActivity : AppCompatActivity() {
             object : androidx.biometric.BiometricPrompt.AuthenticationCallback() {
                 override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
                     super.onAuthenticationError(errorCode, errString)
-                    Toast.makeText(applicationContext, "Auth Error: $errString", Toast.LENGTH_SHORT).show()
+                    isCountdownPaused = false
+                    statusText.text = "ERROR: \$errString"
+                    statusText.setTextColor(android.graphics.Color.RED)
+                    statusText.visibility = android.view.View.VISIBLE
+                    Toast.makeText(applicationContext, "Auth Error: \$errString", Toast.LENGTH_SHORT).show()
                 }
 
                 override fun onAuthenticationSucceeded(result: androidx.biometric.BiometricPrompt.AuthenticationResult) {
                     super.onAuthenticationSucceeded(result)
                     handler.removeCallbacksAndMessages(null)
+                    statusText.text = "VERIFIED"
+                    statusText.setTextColor(android.graphics.Color.GREEN)
+                    statusText.visibility = android.view.View.VISIBLE
                     sendBroadcast(Intent("com.sentinel.agent.RESET_EMERGENCY"))
                     Toast.makeText(applicationContext, "Identity Verified. Lockdown Overridden.", Toast.LENGTH_SHORT).show()
                     try {
@@ -67,14 +89,19 @@ class EmergencyActivity : AppCompatActivity() {
 
                 override fun onAuthenticationFailed() {
                     super.onAuthenticationFailed()
-                    Toast.makeText(applicationContext, "Auth Failed", Toast.LENGTH_SHORT).show()
+                    isCountdownPaused = false
+                    statusText.text = "VERIFICATION FAILED"
+                    statusText.setTextColor(android.graphics.Color.RED)
+                    statusText.visibility = android.view.View.VISIBLE
+                    Toast.makeText(applicationContext, "Identity Verification Failed.", Toast.LENGTH_SHORT).show()
                 }
             })
 
         val promptInfo = BiometricPrompt.PromptInfo.Builder()
-            .setTitle("Verify Identity to Cancel Lockdown")
-            .setSubtitle("Authorized Personnel Only")
+            .setTitle("Sentinel Identity Verification")
+            .setSubtitle("Authenticate to override security block")
             .setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_STRONG or BiometricManager.Authenticators.DEVICE_CREDENTIAL)
+            .setConfirmationRequired(false)
             .build()
 
         biometricPrompt.authenticate(promptInfo)
@@ -82,20 +109,35 @@ class EmergencyActivity : AppCompatActivity() {
 
     override fun onUserLeaveHint() {
         super.onUserLeaveHint()
-        // Prevent bypassing via Home button: bring activity back to top if emergency active
-        // (In a real 10/10 app, this would be even more aggressive)
     }
 
     private fun startCountdown() {
         handler.postDelayed(object : Runnable {
             override fun run() {
+                if (isCountdownPaused) {
+                    handler.postDelayed(this, 1000)
+                    return
+                }
+
                 if (countdown > 0) {
                     countdown--
                     countdownText.text = countdown.toString()
                     handler.postDelayed(this, 1000)
                 } else {
-                    // Revocation happens in EmergencyManager as well, 
-                    // but we can close this screen once finalized.
+                    // V60 Fix: Watchdog auto-release to prevent infinite permanent lock
+                    countdownText.text = "AUTO-RELEASE"
+                    countdownText.setTextColor(android.graphics.Color.GREEN)
+                    // Prepend the status instead of overwriting the detailed reason
+                    findViewById<TextView>(R.id.emergencyReasoningText).text = "EXPIRED: \$reasoning"
+                    
+                    Toast.makeText(applicationContext, "Lockdown Auto-Expired (Watchdog Release).", Toast.LENGTH_LONG).show()
+                    
+                    try {
+                        stopLockTask()
+                    } catch (e: Exception) {}
+                    
+                    // Reset emergency state so user isn't permanently locked out of phone
+                    sendBroadcast(Intent("com.sentinel.agent.RESET_EMERGENCY"))
                     finish()
                 }
             }

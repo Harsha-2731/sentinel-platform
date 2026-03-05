@@ -47,7 +47,7 @@ const protect = async (req, res, next) => {
             const deviceId = req.headers['x-sentinel-device-id'];
             const userAgent = req.headers['user-agent'];
 
-            if (req.user.deviceId && deviceId && req.user.deviceId !== deviceId) {
+            if (req.user.deviceId && deviceId && deviceId !== "unknown_device" && req.user.deviceId !== deviceId) {
                 console.warn(`[SECURITY ALERT] Session Fingerprint Mismatch: Expected ${req.user.deviceId}, got ${deviceId}`);
                 return res.status(403).json({ message: 'Session Binding Violation. Device Fingerprint Mismatch.' });
             }

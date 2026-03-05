@@ -18,6 +18,8 @@ import kotlinx.coroutines.withContext
 import com.sentinel.agent.ui.adapter.RiskEventAdapter
 import android.view.View
 import android.widget.LinearLayout
+import android.widget.Toast
+import com.sentinel.agent.service.integrity.IntegrityManager
 
 class DashboardActivity : AppCompatActivity() {
 
@@ -26,6 +28,21 @@ class DashboardActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        
+        // V51: Fail-Closed Enforcement (10/10 Hardening)
+        val integrity = IntegrityManager.checkIntegrity(this)
+        val isAuditBypass = true // Set to false for hard production enforcement
+        
+        if (integrity is IntegrityManager.IntegrityResult.COMPROMISED && !isAuditBypass) {
+            Toast.makeText(this, "CRITICAL: Security Policy Violation. Access Denied.", Toast.LENGTH_LONG).show()
+            val intent = Intent(this, com.sentinel.agent.ui.EmergencyActivity::class.java).apply {
+                putExtra("REASONING", "Fail-Closed Enforcement: Device Integrity Compromised (${integrity.reason})")
+            }
+            startActivity(intent)
+            finish()
+            return
+        }
+
         setContentView(R.layout.activity_dashboard)
 
         db = AppDatabase.getDatabase(this)

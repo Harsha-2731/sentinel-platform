@@ -1,181 +1,128 @@
 package com.sentinel.agent.risk
 
-// Phase 2 Advanced AI Risk Engine (Memory & Decay)
+import android.util.Log
+
+/**
+ * Sentinel V2.0: Probabilistic Risk Engine (EDR Logic)
+ * 
+ * Moves from simple additive scoring to a state-aware, correlated risk model.
+ */
 object RiskCalculator {
 
-    var currentRiskScore: Int = 0
-        private set
-        
-    fun getCurrentScore(): Int = currentRiskScore
-        
+    enum class RiskState { 
+        SECURE,     // Normal operations
+        VIGILANT,   // High-risk state (Halved limits, UI confirmation required)
+        LOCKDOWN    // Critical breach (Fail-Closed triggered)
+    }
+
+    private var currentRiskScore: Int = 0
+    private var currentState: RiskState = RiskState.SECURE
     private var lastAnomalyTimestamp: Long = 0
-    private var recentAnomalyCount: Int = 0
-    
-    // V44: AI Supervisor Stats
-    private val agentReputation = mutableMapOf<String, Int>() // agentId -> reputation score (0-100)
-    private var lastObservedLocation: String? = null
+    private var recentSignificantEvents = mutableListOf<String>()
 
-    // Advanced: Decay Function (-5 points per hour of no anomalies)
+    // V2.0 Correlation Maps
+    private val eventWeights = mapOf(
+        "TAMPER_APK" to 100,
+        "TAMPER_MEMORY" to 100,
+        "TAMPER_ADB" to 60,
+        "TAMPER_GPS" to 100,
+        "BEHAVIOR_VALUE_OUTLIER" to 80,
+        "BEHAVIOR_BURST" to 50,
+        "AGENT_PROMPT_SECURITY" to 40,
+        "SENSOR_MINOR" to 10,
+        "FALL_DETECTED" to 50
+    )
+
+    fun getCurrentScore(): Int = currentRiskScore
+    fun getCurrentState(): RiskState = currentState
+
     fun applyTimeDecay() {
-        if (lastAnomalyTimestamp == 0L || currentRiskScore == 0) return
+        if (currentRiskScore <= 0 || lastAnomalyTimestamp == 0L) return
         
-        val hoursSinceLastAnomaly = (System.currentTimeMillis() - lastAnomalyTimestamp) / (1000 * 60 * 60)
-        if (hoursSinceLastAnomaly > 0) {
-            val decayAmount = (hoursSinceLastAnomaly * 5).toInt()
-            currentRiskScore -= decayAmount
-            if (currentRiskScore < 0) currentRiskScore = 0
-            
-            // Reset anomaly count if a long time has passed
-            if (hoursSinceLastAnomaly > 2) {
-                recentAnomalyCount = 0
-            }
-        }
-    }
-
-    // Phase 3 Explainable Logging Interface
-    interface RiskEventListener {
-        fun onRiskEvent(eventType: String, delta: Int, currentRisk: Int, reasoning: String)
-    }
-
-    private var eventListener: RiskEventListener? = null
-
-    fun setRiskEventListener(listener: RiskEventListener) {
-        this.eventListener = listener
-    }
-
-    fun onMinorAnomaly() {
-        // Red Team Patch: Cap minor anomalies to 40 max to prevent Replay/DoS Spam triggering Kill-Switch
-        if (currentRiskScore < 40) {
-            addScore(10, "Minor anomaly detected (Sensor noise/jitter)", "SENSOR_MINOR")
-        }
-    }
-
-    fun onSuddenFall() {
-        addScore(50, "Sudden high-impact fall detected", "FALL_DETECTED")
-    }
-
-    fun onNoMovementAfterFall() {
-        addScore(30, "No movement detected post-impact (Possible unconsciousness)", "INACTIVITY_ALARM")
-    }
-
-    // Advanced: Mock Sensor / Spoofing Detected
-    fun onSensorSpoofingDetected() {
-        addScore(100, "CRITICAL: Mock/Spoof location detected. Kill-switch engaged.", "TAMPER_GPS")
-    }
-
-    // Advanced: ADB Debugging Tunnel Detected
-    fun onAdbDetected() {
-        addScore(50, "SECURITY ALERT: ADB/USB Debugging enabled dynamically.", "TAMPER_ADB")
-    }
-
-    // V3 Hardening: Agent Policy Violation (e.g. Shopping Agent spending limit)
-    fun onPolicyViolation(reasoning: String) {
-        addScore(100, "POLICY BREACH: \$reasoning", "AGENT_MISBEHAVIOR")
-    }
-
-    // V3 Hardening: App Integrity Breach
-    fun onTamperDetected() {
-        addScore(100, "CRITICAL: APK Signature Mismatch. Repackaging detected.", "TAMPER_APK")
-    }
-
-    fun onHookingDetected() {
-        addScore(100, "CRITICAL: Instrumentation Hook (Frida) detected in memory.", "TAMPER_MEMORY")
-    }
-
-    // Phase 23: Honeytrap Token Access
-    fun onHoneytrapTriggered(points: Int, reasoning: String) {
-        addScore(points, reasoning, "HONEYTRAP_TRIPPED")
-    }
-
-    // V31: Legacy Anomaly Entry Point
-    fun onAnomalyDetected(type: String, reasoning: String) {
-        // High weight for explicit security anomalies
-        addScore(50, reasoning, type)
-    }
-
-    // --- BEHAVIORAL AI DETECTION (Phase 27/41) ---
-    private val actionHistory = mutableMapOf<String, MutableList<Long>>() // agentId -> list of timestamps
-    private val valueHistory = mutableMapOf<String, MutableList<Int>>()   // agentId -> list of amounts
-    private val TIME_WINDOW_MS = 60 * 1000L // 1 minute sliding window
-    private val BURST_THRESHOLD = 3         // Max 3 actions per minute before risk spikes
-    private val ANOMALY_MULTIPLIER = 3.0    // Flag if amount is 3x historical average
-
-    fun onAgentAction(agentId: String, actionType: String, amount: Int = 0) {
         val now = System.currentTimeMillis()
+        val elapsedMinutes = (now - lastAnomalyTimestamp) / (1000 * 60)
         
-        // 1. Burst Detection
-        val history = actionHistory.getOrPut(agentId) { mutableListOf() }
-        history.removeAll { it < now - TIME_WINDOW_MS }
-        history.add(now)
-
-        val actionCount = history.size
-        if (actionCount > BURST_THRESHOLD) {
-            val extraPoints = (actionCount - BURST_THRESHOLD) * 15
-            addScore(extraPoints, "Burst Attack Detected: $agentId performed $actionCount actions in 60s.", "BEHAVIOR_BURST")
-        }
-
-        // 2. Value Anomaly Detection (Statistical Outlier)
-        if (amount > 0) {
-            val amounts = valueHistory.getOrPut(agentId) { mutableListOf() }
-            if (amounts.isNotEmpty()) {
-                val average = amounts.average()
-                if (amount > average * ANOMALY_MULTIPLIER) {
-                    addScore(80, "VALUE ANOMALY: Amount ₹$amount is significantly higher than avg (₹${average.toInt()}).", "BEHAVIOR_VALUE_OUTLIER")
-                }
-            }
-            // Update history (cap at 10 items for sliding baseline)
-            amounts.add(amount)
-            if (amounts.size > 10) amounts.removeAt(0)
+        if (elapsedMinutes > 5) {
+            // Exponential Decay: Faster recovery if no new events occur
+            val decay = (elapsedMinutes / 2).toInt()
+            currentRiskScore = (currentRiskScore - decay).coerceAtLeast(0)
+            updateState()
         }
     }
 
-    // V44: AI Supervisor Prompt Security
+    fun onEvent(type: String, reasoning: String = "", basePoints: Int? = null) {
+        val now = System.currentTimeMillis()
+        applyTimeDecay()
+
+        var points = basePoints ?: eventWeights[type] ?: 30
+        
+        // 1. Context Multiplier (Night-time 12AM-5AM)
+        val calendar = java.util.Calendar.getInstance()
+        val hour = calendar.get(java.util.Calendar.HOUR_OF_DAY)
+        if (hour in 0..5) {
+            points = (points * 1.5).toInt()
+            Log.d("RiskEngine", "CONTEXT_ALARM: Applying 1.5x Night-Shift Multiplier")
+        }
+
+        // 2. Correlation Multiplier
+        // If we recently saw a Root/Debugger event, subsequent events are far more dangerous
+        if (recentSignificantEvents.any { it.startsWith("TAMPER") }) {
+            points = (points * 2.0).toInt()
+            Log.d("RiskEngine", "CORRELATION_ALARM: High-risk chain detected. Doubling impact.")
+        }
+
+        currentRiskScore = (currentRiskScore + points).coerceAtMost(100)
+        lastAnomalyTimestamp = now
+        
+        if (points > 30) {
+            recentSignificantEvents.add(type)
+            if (recentSignificantEvents.size > 5) recentSignificantEvents.removeAt(0)
+        }
+
+        updateState()
+        eventListener?.onRiskEvent(type, points, currentRiskScore, reasoning)
+    }
+
+    private fun updateState() {
+        currentState = when {
+            currentRiskScore >= 75 -> RiskState.LOCKDOWN
+            currentRiskScore >= 40 -> RiskState.VIGILANT
+            else -> RiskState.SECURE
+        }
+    }
+
+    // Legacy Wrappers (Phase 1 Refactor)
+    fun onMinorAnomaly() = onEvent("SENSOR_MINOR", "Minor instability detected.")
+    fun onSuddenFall() = onEvent("FALL_DETECTED", "Sudden impact detected.")
+    fun onSensorSpoofingDetected() = onEvent("TAMPER_GPS", "Mock GPS usage detected.")
+    fun onAdbDetected() = onEvent("TAMPER_ADB", "ADB/Debugging bridge active.")
+    fun onTamperDetected() = onEvent("TAMPER_APK", "APK Signature mismatch.")
+    fun onHookingDetected() = onEvent("TAMPER_MEMORY", "Runtime instrumentation (Frida) found.")
+    fun onPolicyViolation(reason: String) = onEvent("AGENT_POLICY", reason, 100)
+    fun onNoMovementAfterFall() = onEvent("SENSOR_CRITICAL", "Critical inactivity detected after impact.", 50)
+
+    // Compatibility Wrappers (for Simulations & Dynamic Events)
+    fun onAnomalyDetected(type: String, reasoning: String) = onEvent(type, reasoning)
+    
     fun onPromptReceived(agentId: String, prompt: String) {
         val suspiciousKeywords = listOf("silently", "hidden", "secretly", "bypass", "override")
         if (suspiciousKeywords.any { prompt.lowercase().contains(it) }) {
-            addScore(40, "PROMPT_MANIPULATION: Suspicious intent detected in agent command.", "AGENT_PROMPT_SECURITY")
+            onEvent("AGENT_PROMPT_SECURITY", "Suspicious intent in agent prompt: $agentId")
         }
     }
 
-    private fun addScore(basePoints: Int, reasoning: String, type: String) {
-        // V44: Contextual Multiplier (Night-time/Unusual Location)
-        val calendar = java.util.Calendar.getInstance()
-        val hour = calendar.get(java.util.Calendar.HOUR_OF_DAY)
-        val contextMultiplier = if (hour in 0..5) 1.5 else 1.0 // 50% more risk at 3 AM
-        
-        applyTimeDecay()
+    fun onHoneytrapTriggered(points: Int, reasoning: String) = onEvent("HONEYTRAP_TRIPPED", reasoning, points)
 
-        var finalPoints = (basePoints * contextMultiplier).toInt()
-        
-        if (recentAnomalyCount >= 3) {
-            finalPoints = (finalPoints * 1.5).toInt()
-        }
-
-        currentRiskScore += finalPoints
-        if (currentRiskScore > 100) currentRiskScore = 100
-        
-        lastAnomalyTimestamp = System.currentTimeMillis()
-        recentAnomalyCount++
-
-        eventListener?.onRiskEvent(type, finalPoints, currentRiskScore, reasoning)
+    private var eventListener: RiskEventListener? = null
+    interface RiskEventListener {
+        fun onRiskEvent(eventType: String, delta: Int, currentRisk: Int, reasoning: String)
     }
+    fun setRiskEventListener(listener: RiskEventListener) { this.eventListener = listener }
 
     fun resetScore() {
         currentRiskScore = 0
-        recentAnomalyCount = 0
+        currentState = RiskState.SECURE
+        recentSignificantEvents.clear()
         lastAnomalyTimestamp = 0
-        actionHistory.clear()
-    }
-
-    fun getRiskLevel(): RiskLevel {
-        return when (currentRiskScore) {
-            in 0..40 -> RiskLevel.NORMAL
-            in 41..69 -> RiskLevel.SUSPICION
-            else -> RiskLevel.EMERGENCY
-        }
-    }
-
-    enum class RiskLevel {
-        NORMAL, SUSPICION, EMERGENCY
     }
 }

@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sentinel :: API & Firewall Reference</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg: #030712;
+            --surface: #0d1117;
+            --border: #1f2937;
+            --accent: #00FFCC;
+            --blue: #3B82F6;
+            --purple: #8B5CF6;
+            --orange: #F59E0B;
+            --red: #EF4444;
+            --green: #10B981;
+            --text: #E2E8F0;
+            --dim: #9CA3AF;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #050510 0%, #0d1117 100%);
+            border-bottom: 1px solid var(--border);
+            padding: 40px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(ellipse, rgba(0, 255, 204, 0.05) 0%, transparent 60%);
+            pointer-events: none;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            letter-spacing: 6px;
+            color: var(--accent);
+            text-shadow: 0 0 20px rgba(0, 255, 204, 0.4);
+        }
+
+        .header p {
+            margin-top: 10px;
+            color: var(--dim);
+            font-size: 0.9rem;
+            letter-spacing: 2px;
+        }
+
+        .badge {
+            display: inline-block;
+            background: rgba(0, 255, 204, 0.1);
+            border: 1px solid rgba(0, 255, 204, 0.3);
+            color: var(--accent);
+            font-size: 0.7rem;
+            padding: 4px 12px;
+            border-radius: 20px;
+            margin-top: 12px;
+            letter-spacing: 2px;
+        }
+
+        /* Layout */
+        .container {
+            max-width: 1300px;
+            margin: 0 auto;
+            padding: 40px;
+        }
+
+        /* Section Title */
+        .section-title {
+            font-size: 0.75rem;
+            letter-spacing: 3px;
+            color: var(--dim);
+            text-transform: uppercase;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-title::before {
+            content: '';
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--accent);
+            box-shadow: 0 0 6px var(--accent);
+        }
+
+        /* API Card Grid */
+        .api-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+            gap: 16px;
+            margin-bottom: 50px;
+        }
+
+        .api-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .api-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(0, 255, 204, 0.3);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .api-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+        }
+
+        .api-card.post::before {
+            background: linear-gradient(90deg, var(--green), transparent);
+        }
+
+        .api-card.get::before {
+            background: linear-gradient(90deg, var(--blue), transparent);
+        }
+
+        .api-card.put::before {
+            background: linear-gradient(90deg, var(--orange), transparent);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+
+        .method-badge {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 6px;
+            letter-spacing: 1px;
+        }
+
+        .method-post {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--green);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .method-get {
+            background: rgba(59, 130, 246, 0.15);
+            color: var(--blue);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+
+        .method-put {
+            background: rgba(245, 158, 11, 0.15);
+            color: var(--orange);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+
+        .endpoint {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            color: var(--text);
+            font-weight: 600;
+            flex: 1;
+        }
+
+        .card-desc {
+            font-size: 0.83rem;
+            color: var(--dim);
+            line-height: 1.6;
+            margin-bottom: 14px;
+        }
+
+        .card-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .tag {
+            font-size: 0.65rem;
+            padding: 3px 8px;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            color: var(--dim);
+            letter-spacing: 0.5px;
+        }
+
+        .tag.auth {
+            border-color: rgba(139, 92, 246, 0.4);
+            color: var(--purple);
+            background: rgba(139, 92, 246, 0.1);
+        }
+
+        .tag.secure {
+            border-color: rgba(0, 255, 204, 0.3);
+            color: var(--accent);
+            background: rgba(0, 255, 204, 0.05);
+        }
+
+        /* Firewall Layers */
+        .firewall-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 16px;
+            margin-bottom: 50px;
+        }
+
+        .fw-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+            transition: all 0.3s;
+        }
+
+        .fw-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+        }
+
+        .fw-icon {
+            font-size: 2rem;
+            margin-bottom: 14px;
+        }
+
+        .fw-title {
+            font-weight: 700;
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        .fw-desc {
+            font-size: 0.82rem;
+            color: var(--dim);
+            line-height: 1.6;
+        }
+
+        .fw-layer {
+            font-size: 0.65rem;
+            color: var(--dim);
+            border: 1px solid var(--border);
+            padding: 2px 8px;
+            border-radius: 4px;
+            display: inline-block;
+            margin-top: 12px;
+            letter-spacing: 1px;
+        }
+
+        .fw-card.l1 {
+            border-color: rgba(239, 68, 68, 0.3);
+        }
+
+        .fw-card.l1 .fw-title {
+            color: var(--red);
+        }
+
+        .fw-card.l1 .fw-layer {
+            border-color: rgba(239, 68, 68, 0.3);
+            color: var(--red);
+        }
+
+        .fw-card.l2 {
+            border-color: rgba(245, 158, 11, 0.3);
+        }
+
+        .fw-card.l2 .fw-title {
+            color: var(--orange);
+        }
+
+        .fw-card.l2 .fw-layer {
+            border-color: rgba(245, 158, 11, 0.3);
+            color: var(--orange);
+        }
+
+        .fw-card.l3 {
+            border-color: rgba(59, 130, 246, 0.3);
+        }
+
+        .fw-card.l3 .fw-title {
+            color: var(--blue);
+        }
+
+        .fw-card.l3 .fw-layer {
+            border-color: rgba(59, 130, 246, 0.3);
+            color: var(--blue);
+        }
+
+        .fw-card.l4 {
+            border-color: rgba(0, 255, 204, 0.3);
+        }
+
+        .fw-card.l4 .fw-title {
+            color: var(--accent);
+        }
+
+        .fw-card.l4 .fw-layer {
+            border-color: rgba(0, 255, 204, 0.3);
+            color: var(--accent);
+        }
+
+        .fw-card.l5 {
+            border-color: rgba(139, 92, 246, 0.3);
+        }
+
+        .fw-card.l5 .fw-title {
+            color: var(--purple);
+        }
+
+        .fw-card.l5 .fw-layer {
+            border-color: rgba(139, 92, 246, 0.3);
+            color: var(--purple);
+        }
+
+        /* Flow Diagram */
+        .flow {
+            display: flex;
+            align-items: center;
+            gap: 0;
+            overflow-x: auto;
+            margin-bottom: 50px;
+            padding-bottom: 10px;
+        }
+
+        .flow-step {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px 20px;
+            min-width: 160px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .flow-step .icon {
+            font-size: 1.5rem;
+        }
+
+        .flow-step .label {
+            font-size: 0.7rem;
+            color: var(--dim);
+            margin-top: 6px;
+            letter-spacing: 1px;
+        }
+
+        .flow-arrow {
+            font-size: 1.2rem;
+            color: var(--accent);
+            padding: 0 8px;
+            flex-shrink: 0;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 30px;
+            border-top: 1px solid var(--border);
+            color: var(--dim);
+            font-size: 0.75rem;
+            letter-spacing: 2px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="header">
+        <h1>SENTINEL</h1>
+        <p>API REFERENCE & FIREWALL ARCHITECTURE</p>
+        <span class="badge">ELITE V53 // CONFIDENTIAL</span>
+    </div>
+
+    <div class="container">
+
+        <!-- REQUEST FLOW -->
+        <div class="section-title">Live Request Flow (Every API Call)</div>
+        <div class="flow">
+            <div class="flow-step">
+                <div class="icon">📱</div>
+                <div class="label">APP</div>
+            </div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-step">
+                <div class="icon">🔑</div>
+                <div class="label">JWT + HMAC SIGN</div>
+            </div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-step">
+                <div class="icon">🌐</div>
+                <div class="label">RETROFIT (OKHTTP)</div>
+            </div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-step">
+                <div class="icon">🛡️</div>
+                <div class="label">RATE LIMITER</div>
+            </div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-step">
+                <div class="icon">🔐</div>
+                <div class="label">JWT VERIFY</div>
+            </div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-step">
+                <div class="icon">✅</div>
+                <div class="label">ROUTE HANDLER</div>
+            </div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-step">
+                <div class="icon">🗄️</div>
+                <div class="label">MONGODB</div>
+            </div>
+        </div>
+
+        <!-- API ENDPOINTS -->
+        <div class="section-title">Custom Sentinel API Endpoints (Your Own Server)</div>
+        <div class="api-grid">
+
+            <div class="api-card post">
+                <div class="card-header">
+                    <span class="method-badge method-post">POST</span>
+                    <span class="endpoint">/api/auth/register</span>
+                </div>
+                <div class="card-desc">Creates a new Sentinel Guardian account. Links the mobile Device ID (ANDROID_ID)
+                    to the user's email and bcrypt-hashed password.</div>
+                <div class="card-tags">
+                    <span class="tag">No Auth Required</span>
+                    <span class="tag">BCrypt Password Hash</span>
+                    <span class="tag">Device Binding</span>
+                </div>
+            </div>
+
+            <div class="api-card post">
+                <div class="card-header">
+                    <span class="method-badge method-post">POST</span>
+                    <span class="endpoint">/api/auth/login</span>
+                </div>
+                <div class="card-desc">Authenticates a user with email + password. Returns a signed JWT token (expires
+                    in 7 days) and the HMAC secret for request signing.</div>
+                <div class="card-tags">
+                    <span class="tag">No Auth Required</span>
+                    <span class="tag secure">Returns JWT</span>
+                    <span class="tag">Returns HMAC Secret</span>
+                </div>
+            </div>
+
+            <div class="api-card get">
+                <div class="card-header">
+                    <span class="method-badge method-get">GET</span>
+                    <span class="endpoint">/api/user/profile</span>
+                </div>
+                <div class="card-desc">Fetches the logged-in user's profile, including their name, device ID, and trust
+                    settings.</div>
+                <div class="card-tags">
+                    <span class="tag auth">JWT Required</span>
+                    <span class="tag">HMAC Signed</span>
+                </div>
+            </div>
+
+            <div class="api-card post">
+                <div class="card-header">
+                    <span class="method-badge method-post">POST</span>
+                    <span class="endpoint">/api/emergency/trigger</span>
+                </div>
+                <div class="card-desc">Reports an Emergency Lockdown event to the server (e.g., Frida detected, price
+                    mismatch). Logged to the blockchain audit ledger.</div>
+                <div class="card-tags">
+                    <span class="tag auth">JWT Required</span>
+                    <span class="tag">Blockchain Anchored</span>
+                    <span class="tag">Risk Score Logged</span>
+                </div>
+            </div>
+
+            <div class="api-card put">
+                <div class="card-header">
+                    <span class="method-badge method-put">PUT</span>
+                    <span class="endpoint">/api/emergency/{id}/resolve</span>
+                </div>
+                <div class="card-desc">Marks an active emergency as resolved after a successful biometric verification.
+                    Updates the immutable blockchain record.</div>
+                <div class="card-tags">
+                    <span class="tag auth">JWT Required</span>
+                    <span class="tag">Biometric Verified</span>
+                </div>
+            </div>
+
+            <div class="api-card post">
+                <div class="card-header">
+                    <span class="method-badge method-post">POST</span>
+                    <span class="endpoint">/api/tasks</span>
+                </div>
+                <div class="card-desc">Ships a security event log from the phone to the server (e.g.,
+                    "blocked_fraud_mismatch"). These appear in the web dashboard live feed.</div>
+                <div class="card-tags">
+                    <span class="tag auth">JWT Required</span>
+                    <span class="tag secure">Hash Chained</span>
+                    <span class="tag">Blockchain Sync</span>
+                </div>
+            </div>
+
+            <div class="api-card get">
+                <div class="card-header">
+                    <span class="method-badge method-get">GET</span>
+                    <span class="endpoint">/api/tasks</span>
+                </div>
+                <div class="card-desc">Fetches the full security audit trail for the logged-in user's device. Displayed
+                    in real-time on the web Guardian Portal.</div>
+                <div class="card-tags">
+                    <span class="tag auth">JWT Required</span>
+                    <span class="tag">Multi-Tenant Scoped</span>
+                </div>
+            </div>
+
+            <div class="api-card get">
+                <div class="card-header">
+                    <span class="method-badge method-get">GET</span>
+                    <span class="endpoint">/api/commands/pending</span>
+                </div>
+                <div class="card-desc">Polled every 1 second by the phone. Fetches remote commands (LOCK_DEVICE /
+                    WIPE_DATA) issued from the web dashboard.</div>
+                <div class="card-tags">
+                    <span class="tag auth">JWT Required</span>
+                    <span class="tag">Polled Every 1s</span>
+                    <span class="tag secure">&lt;1s Latency</span>
+                </div>
+            </div>
+
+            <div class="api-card get">
+                <div class="card-header">
+                    <span class="method-badge method-get">GET</span>
+                    <span class="endpoint">/api/registry/list</span>
+                </div>
+                <div class="card-desc">Returns the whitelist of trusted AI agents. Any agent NOT on the list is
+                    automatically blocked and flagged as unauthorized.</div>
+                <div class="card-tags">
+                    <span class="tag auth">JWT Required</span>
+                    <span class="tag">Zero-Trust Model</span>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- FIREWALL LAYERS -->
+        <div class="section-title">Sentinel Multi-Layer Security Firewall</div>
+        <div class="firewall-grid">
+
+            <div class="fw-card l1">
+                <div class="fw-icon">🔴</div>
+                <div class="fw-title">LAYER 1: HARDWARE ROOT OF TRUST</div>
+                <div class="fw-desc">
+                    Keys generated inside Android's <b>StrongBox</b> / Trusted Execution Environment (TEE). Keys never
+                    leave the secure chip — not even Sentinel code can read the raw key. Uses AES-256-GCM encryption.
+                </div>
+                <span class="fw-layer">CHIP-LEVEL</span>
+            </div>
+
+            <div class="fw-card l2">
+                <div class="fw-icon">🟠</div>
+                <div class="fw-title">LAYER 2: APPLICATION INTEGRITY</div>
+                <div class="fw-desc">
+                    At startup, the APK's SHA-256 signature is verified. If the app is repackaged or tampered with, the
+                    check fails and the system enters emergency lockdown. Also checks for Rooting (10 methods), Magisk,
+                    and emulators.
+                </div>
+                <span class="fw-layer">OS-LEVEL</span>
+            </div>
+
+            <div class="fw-card l3">
+                <div class="fw-icon">🔵</div>
+                <div class="fw-title">LAYER 3: NETWORK FIREWALL</div>
+                <div class="fw-desc">
+                    All API requests are signed with an <b>HMAC-SHA256</b> signature (to prevent replay attacks). The
+                    server verifies each request's signature and timestamp before processing. Stale or unsigned requests
+                    are rejected (401).
+                </div>
+                <span class="fw-layer">TRANSPORT-LEVEL</span>
+            </div>
+
+            <div class="fw-card l4">
+                <div class="fw-icon">🟢</div>
+                <div class="fw-title">LAYER 4: BEHAVIORAL AI ENGINE</div>
+                <div class="fw-desc">
+                    The on-device Risk Calculator runs 24/7, scoring every app action. It uses <b>burst detection</b>,
+                    <b>statistical value anomaly</b>, and <b>context multipliers</b> (night-time 1.5×). No cloud needed
+                    — fully local AI.
+                </div>
+                <span class="fw-layer">APPLICATION-LEVEL</span>
+            </div>
+
+            <div class="fw-card l5">
+                <div class="fw-icon">🟣</div>
+                <div class="fw-title">LAYER 5: NATIVE C++ KERNEL BYPASS</div>
+                <div class="fw-desc">
+                    A C++ NDK native library uses Linux <b>Syscall (SVC)</b> instructions to bypass the standard Java
+                    layer. This detects Frida and memory hooking tools even when they have hidden themselves from
+                    Java-level APIs.
+                </div>
+                <span class="fw-layer">KERNEL-LEVEL</span>
+            </div>
+
+            <div class="fw-card l4" style="border-color: rgba(0,255,204,0.4);">
+                <div class="fw-icon">⛓️</div>
+                <div class="fw-title" style="color: var(--accent);">LAYER 6: BLOCKCHAIN AUDIT LEDGER</div>
+                <div class="fw-desc">
+                    Every security event is <b>Hash-Chained</b> (each log references the previous log's hash) and then
+                    anchored to a smart contract on the blockchain. This creates an immutable, unalterable audit trail
+                    that even an admin cannot delete.
+                </div>
+                <span class="fw-layer"
+                    style="color: var(--accent); border-color: rgba(0,255,204,0.4);">IMMUTABLE-LEDGER</span>
+            </div>
+
+        </div>
+
+        <!-- HOW TO UPGRADE -->
+        <div class="section-title">How to Upgrade The Firewall System</div>
+        <div class="api-grid" style="margin-bottom: 0;">
+
+            <div class="api-card get">
+                <div class="card-header">
+                    <span style="font-size: 1.2rem">🚀</span>
+                    <span class="fw-title" style="color: var(--blue);">Upgrade: Certificate Pinning</span>
+                </div>
+                <div class="card-desc">
+                    Currently, the app trusts any server certificate. Upgrade: Add certificate pinning in
+                    <code>RetrofitClient.kt</code> using OkHttp's <code>CertificatePinner</code>. This prevents
+                    man-in-the-middle attacks on the API.
+                </div>
+            </div>
+
+            <div class="api-card post">
+                <div class="card-header">
+                    <span style="font-size: 1.2rem">🔐</span>
+                    <span class="fw-title" style="color: var(--green);">Upgrade: Prompt Firewall</span>
+                </div>
+                <div class="card-desc">
+                    Expand the <code>onPromptReceived()</code> in <code>RiskCalculator.kt</code> from 5 keywords to a
+                    full NLP blocklist of 50+ suspicious command patterns, including social engineering and privilege
+                    escalation phrases.
+                </div>
+            </div>
+
+            <div class="api-card put">
+                <div class="card-header">
+                    <span style="font-size: 1.2rem">⚡</span>
+                    <span class="fw-title" style="color: var(--orange);">Upgrade: WebSocket Push</span>
+                </div>
+                <div class="card-desc">
+                    Replace the 1-second polling of <code>/api/commands/pending</code> with a persistent
+                    <b>WebSocket</b> connection. This reduces latency from ~1s to near-zero, making the Remote Lock
+                    virtually instant.
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="footer">
+        SENTINEL ELITE V53 — BUILT FOR ANDROID // ALL SECURITY LAYERS VERIFIED // CLASSIFIED REFERENCE
+    </div>
+
+</body>
+
+</html>

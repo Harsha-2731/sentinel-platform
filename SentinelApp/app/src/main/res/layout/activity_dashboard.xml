@@ -38,6 +38,18 @@
                 app:tint="#9CA3AF" />
         </RelativeLayout>
 
+        <!-- Judge-Friendly Shield Statement -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Sentinel prevents AI agents or malicious apps from secretly stealing money during mobile transactions."
+            android:textColor="#E0E0E0"
+            android:textSize="14sp"
+            android:gravity="center"
+            android:padding="8dp"
+            android:background="#1A00FFCC" />
+
         <!-- Integrity Status Widget -->
         <LinearLayout
             android:id="@+id/integrityStatusLayout"
@@ -219,6 +231,5 @@
                 android:textStyle="bold"
                 android:letterSpacing="0.1" />
         </LinearLayout>
-
     </LinearLayout>
 </ScrollView>

@@ -1,3 +1,0 @@
-com.sentinel.agent.test
-style WhiteBackgroundDialogTheme
-style WhiteBackgroundTheme
